@@ -1,0 +1,92 @@
+[
+	{
+		"model":"books.coa",
+		"pk":1,
+		"fields":{
+			"code":1010,
+			"name":"Cash",
+			"alias":"CAS",
+			"token":"cash",
+			"rules":"type:asset|term:short"
+		}
+	},
+	{
+		"model":"books.coa",
+		"pk":2,
+		"fields":{
+			"code":1000,
+			"name":"Petty Cash",
+			"alias":"PETCAS",
+			"token":"cash",
+			"rules":"type:asset|term:short"
+		}
+	},
+	{
+		"model":"books.coa",
+		"pk":3,
+		"fields":{
+			"code":1200,  
+			"name":"Bank",
+			"alias":"BAK",
+			"token":"bank",
+			"rules":"type:asset|term:long"
+
+		}
+	},
+	{
+		"model":"books.coa",
+		"pk":4,
+		"fields":{
+			"code":1100,  
+			"name":"Accounts Receivables",
+			"alias":"ACCREC",
+			"token":"receivable",
+			"rules":"type:asset|term:short"
+		}
+	},
+	{
+		"model":"books.coa",
+		"pk":5,
+		"fields":{     
+			"code":2000,  
+			"name":"Accounts Payable",
+			"alias":"ACCPAY",
+			"token":"payable",
+			"rules":"type:liability|term:short"
+		}
+	},
+	{     
+		"model":"books.coa",
+		"pk":6,
+		"fields":{ 
+
+			"code":2400,  
+			"name":"Sales Tax Payable",
+			"alias":"SALTAXPAY",
+			"token":"payable",
+			"rules":"type:liability|term:short"
+		}
+	},
+	{
+		"model":"books.coa",
+		"pk":7,
+		"fields":{
+			"code":4000,
+			"name":"Sales",
+			"alias":"SAL",
+			"token":"revenue",
+			"rules":"type:income"
+		}
+	},
+	{
+		"model":"books.coa",
+		"pk":8,
+		"fields":{
+			"code":9100,
+			"name":"Working Capital",
+			"alias":"WOKCAP",
+			"token":"capital",
+			"rules":"type:equity|owner:company"
+		}
+	}
+]

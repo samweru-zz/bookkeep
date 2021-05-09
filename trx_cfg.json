@@ -1,0 +1,11 @@
+[
+	{
+		"model":"books.trxcfg",
+		"pk":1,
+		"fields":{
+			"token":"prepare.sale.tax",
+			"descr":"Digital Service Tax",
+			"rules":"tax:dst@0.15"
+		}
+	}
+]

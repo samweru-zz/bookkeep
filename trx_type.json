@@ -1,0 +1,29 @@
+[
+	{
+		"model":"books.trxtype",
+		"pk":1,
+		"fields":{
+			"token":"prepare.sale",
+			"dr":4,
+			"cr":7
+		}
+	},
+	{
+		"model":"books.trxtype",
+		"pk":2,
+		"fields":{
+			"token":"prepare.sale.tax",
+			"dr":4,
+			"cr":6
+		}
+	},
+	{
+		"model":"books.trxtype",
+		"pk":3,
+		"fields":{
+			"token":"complete.sale",
+			"dr":1,
+			"cr":4
+		}
+	}
+]
