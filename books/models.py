@@ -1,6 +1,7 @@
 from django.db import models
 
 class Period(models.Model):
+	pno = models.CharField(max_length=200)
 	start_date = models.DateTimeField(auto_now=True)
 	end_date = models.DateTimeField()
 
@@ -12,6 +13,7 @@ class Coa(models.Model):
 	rules = models.TextField()
 
 class Trx(models.Model):
+	tno = models.CharField(max_length=200)
 	dr = models.ForeignKey(Coa, related_name="TrxDebit", on_delete=models.DO_NOTHING)
 	cr = models.ForeignKey(Coa, related_name="TrxCredit", on_delete=models.DO_NOTHING)
 	amt = models.FloatField()

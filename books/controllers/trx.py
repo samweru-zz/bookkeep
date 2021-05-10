@@ -1,26 +1,32 @@
 from books.models import *
 from django.db import DatabaseError, transaction
+from django.utils.crypto import get_random_string
+
+from ruler import Ruler
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-def transfer(dr: Coa, cr: Coa, amt, descr):
-	debit = Coa.objects.get(alias=dr)
-	credit = Coa.objects.get(alias=cr)
+def transfer(tno: str, token: str, amt: float, descr: str):
+	trxType = TrxType.objects.get(token=token)
 
-	trx = Trx(dr=debit, cr=credit, amt=amt, descr=descr)
-	trx.save()
+	debit = Coa.objects.get(alias=trxType.dr.alias)
+	credit = Coa.objects.get(alias=trxType.cr.alias)
 
+	return Trx(tno=tno, dr=debit, cr=credit, amt=amt, descr=descr)
+	
 def prepSaleWithTax(amt, descr):
-	saleTrxType = TrxType.objects.get(token="prepare.sale")
-	saleTrxTypeTax = TrxType.objects.get(token="prepare.sale.tax")
+	cfgSaleTax = TrxCfg.objects.get(token="prepare.sale.tax")
+	rruler = Ruler(cfgSaleTax.rules)
+	taxRate = float(rruler.withHas("tax"))
+	afterTax = 1 - taxRate
+
+	trxNo = get_random_string().upper()
 
 	try:
 		with transaction.atomic():
-			saleTrx = Trx(dr=saleTrxType.dr, cr=saleTrxType.cr, amt=amt, descr=descr)
-			saleTrxType = Trx(dr=saleTrxTypeTax.dr, cr=saleTrxTypeTax.cr, amt=amt, descr=descr)
-			saleTrx.save()
-			saleTrxType.save()
+			transfer(tno=trxNo, token="prepare.sale", amt=amt*afterTax, descr=descr).save()
+			transfer(tno=trxNo, token="prepare.sale.tax", amt=amt*taxRate, descr=descr).save()
 	except DatabaseError as e:
 		logger.error(e)

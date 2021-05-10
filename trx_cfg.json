@@ -5,7 +5,7 @@
 		"fields":{
 			"token":"prepare.sale.tax",
 			"descr":"Digital Service Tax",
-			"rules":"tax:dst@0.15"
+			"rules":"is:obligation|has:tax@0.15"
 		}
 	}
 ]
