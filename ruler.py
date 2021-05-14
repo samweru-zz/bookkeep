@@ -11,7 +11,7 @@ class Ruler:
 				return True
 		return False
 
-	def withHas(self, key):
+	def get(self, key):
 		for item in [rules for rules in self.rule.split("|")]:
 			if item.startswith("has:"+key) and item.__contains__("@"):
 				return item.split("@")[-1]

@@ -58,8 +58,8 @@ def makeSale(trxNo: str, amt: float=None):
 
 def getSaleVsTaxAlloc(amt:float):
 	cfgSaleTax = TrxCfg.objects.get(token="sale.tax")
-	rruler = Ruler(cfgSaleTax.rules)
-	taxRate = float(rruler.withHas("tax"))
+	rules = Ruler(cfgSaleTax.rules)
+	taxRate = float(rules.get("tax"))
 
 	return Number(amt).alloc(taxRate)
 
