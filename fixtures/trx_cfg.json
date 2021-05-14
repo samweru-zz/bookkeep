@@ -3,7 +3,7 @@
 		"model":"books.trxcfg",
 		"pk":1,
 		"fields":{
-			"token":"prepare.sale.tax",
+			"token":"sale.tax",
 			"descr":"Digital Service Tax",
 			"rules":"is:obligation|has:tax@0.15"
 		}

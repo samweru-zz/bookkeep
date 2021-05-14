@@ -2,3 +2,5 @@ __pycache__
 __init__.py
 db.sqlite3
 books/migrations
+bookkeep/settings.py
+debug.log

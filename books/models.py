@@ -15,8 +15,9 @@ class Coa(models.Model):
 class TrxLog(models.Model):
 	tno = models.CharField(max_length=200)
 	descr = models.TextField(default="N/A")
-	tt_amt = models.FloatField()
-	status = models.CharField(max_length=200, default="Active")
+	qamt = models.FloatField() #total amount
+	bal = models.FloatField(default=0) #balance
+	status = models.CharField(max_length=200, default="Pending")
 	created_at = models.DateTimeField(auto_now=True)
 
 class Trx(models.Model):
@@ -39,5 +40,5 @@ class TrxCfg(models.Model):
 class TrxAlloc(models.Model):
 	acc = models.ForeignKey(Coa, on_delete=models.DO_NOTHING)
 	amt = models.FloatField()
-	limit = models.FloatField()
+	limit = models.FloatField() #limit of allocation
 	created_at = models.DateTimeField(auto_now=True)

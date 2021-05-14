@@ -9,27 +9,57 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def transfer(tno: str, token: str, amt: float):
+def transfer(trxNo: str, token: str, amt: float):
 	trxType = TrxType.objects.get(token=token)
 
 	debit = Coa.objects.get(alias=trxType.dr.alias)
 	credit = Coa.objects.get(alias=trxType.cr.alias)
 
-	return Trx(tno=tno, dr=debit, cr=credit, amt=amt)
+	return Trx(tno=trxNo, dr=debit, cr=credit, amt=amt)
 	
-def prepSaleWithTax(amt, descr):
-	cfgSaleTax = TrxCfg.objects.get(token="prepare.sale.tax")
-	rruler = Ruler(cfgSaleTax.rules)
-	taxRate = float(rruler.withHas("tax"))
-	
-	taxAmt, netSaleAmt = Number(amt).alloc(taxRate)
+def prepSale(amt, descr):
+	taxAmt, netSaleAmt = getSaleVsTaxAlloc(amt=amt)
 
 	trxNo = get_random_string().upper()
 
 	try:
 		with transaction.atomic():
-			TrxLog(tno=trxNo, tt_amt=amt, descr=descr).save()
-			transfer(tno=trxNo, token="prepare.sale", amt=netSaleAmt).save()
-			transfer(tno=trxNo, token="prepare.sale.tax", amt=taxAmt).save()
+			TrxLog(tno=trxNo, qamt=amt, bal = amt, descr=descr).save()
+			transfer(trxNo=trxNo, token="prepare.sale", amt=netSaleAmt).save()
+			transfer(trxNo=trxNo, token="prepare.sale.tax", amt=taxAmt).save()
 	except DatabaseError as e:
 		logger.error(e)
+
+def makeSale(trxNo: str, amt: float=None):
+	log = TrxLog.objects.get(tno=trxNo)
+
+	if(amt is None):
+		amt = log.qamt
+
+	if(amt > log.bal):
+		raise Exception("Residual sale amount cannot be greater than balance!")
+
+	taxAmt, netSaleAmt = getSaleVsTaxAlloc(amt=amt)
+	bal = log.bal - amt
+
+	status = "Pending"
+	if(bal == 0):
+		status = "Final"
+
+	try:
+		with transaction.atomic():
+			log.bal = bal
+			log.status = status
+			log.save()
+			transfer(trxNo=trxNo, token="apply.sale", amt=netSaleAmt).save()
+			transfer(trxNo=trxNo, token="apply.sale.tax", amt=taxAmt).save()
+	except DatabaseError as e:
+		logger.error(e)
+
+def getSaleVsTaxAlloc(amt:float):
+	cfgSaleTax = TrxCfg.objects.get(token="sale.tax")
+	rruler = Ruler(cfgSaleTax.rules)
+	taxRate = float(rruler.withHas("tax"))
+
+	return Number(amt).alloc(taxRate)
+

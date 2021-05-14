@@ -1,2 +1,1 @@
-2021-05-09 06:44:45,256 DEBUG test test test test test
-2021-05-09 06:49:08,881 INFO books.controllers.trx test
+2021-05-14 15:54:16,243 ERROR books.controllers.trx NOT NULL constraint failed: books_trxlog.qamt

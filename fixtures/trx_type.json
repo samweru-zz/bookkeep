@@ -5,7 +5,7 @@
 		"fields":{
 			"token":"prepare.sale",
 			"dr":4,
-			"cr":7
+			"cr":7 
 		}
 	},
 	{
@@ -21,9 +21,18 @@
 		"model":"books.trxtype",
 		"pk":3,
 		"fields":{
-			"token":"complete.sale",
+			"token":"apply.sale",
 			"dr":1,
 			"cr":4
+		}
+	},
+	{
+		"model":"books.trxtype",
+		"pk":4,
+		"fields":{
+			"token":"apply.sale.tax",
+			"dr":6,
+			"cr":1
 		}
 	}
 ]
