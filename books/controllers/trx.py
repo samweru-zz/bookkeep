@@ -15,7 +15,7 @@ def transfer(trxNo: str, token: str, amt: float):
 	debit = Coa.objects.get(alias=trxType.dr.alias)
 	credit = Coa.objects.get(alias=trxType.cr.alias)
 
-	return Trx(tno=trxNo, dr=debit, cr=credit, amt=amt)
+	return Ledger(tno=trxNo, dr=debit, cr=credit, amt=amt)
 	
 def prepSale(amt, descr):
 	taxAmt, netSaleAmt = getSaleVsTaxAlloc(amt=amt)
@@ -24,23 +24,23 @@ def prepSale(amt, descr):
 
 	try:
 		with transaction.atomic():
-			TrxLog(tno=trxNo, qamt=amt, bal = amt, descr=descr).save()
+			Trx(tno=trxNo, qamt=amt, bal=amt, descr=descr).save()
 			transfer(trxNo=trxNo, token="prepare.sale", amt=netSaleAmt).save()
 			transfer(trxNo=trxNo, token="prepare.sale.tax", amt=taxAmt).save()
 	except DatabaseError as e:
 		logger.error(e)
 
 def makeSale(trxNo: str, amt: float=None):
-	log = TrxLog.objects.get(tno=trxNo)
+	trx = Trx.objects.get(tno=trxNo)
 
 	if(amt is None):
-		amt = log.qamt
+		amt = trx.qamt
 
-	if(amt > log.bal):
+	if(amt > trx.bal):
 		raise Exception("Residual sale amount cannot be greater than balance!")
 
 	taxAmt, netSaleAmt = getSaleVsTaxAlloc(amt=amt)
-	bal = log.bal - amt
+	bal = trx.bal - amt
 
 	status = "Pending"
 	if(bal == 0):
@@ -48,9 +48,9 @@ def makeSale(trxNo: str, amt: float=None):
 
 	try:
 		with transaction.atomic():
-			log.bal = bal
-			log.status = status
-			log.save()
+			trx.bal = bal
+			trx.status = status
+			trx.save()
 			transfer(trxNo=trxNo, token="apply.sale", amt=netSaleAmt).save()
 			transfer(trxNo=trxNo, token="apply.sale.tax", amt=taxAmt).save()
 	except DatabaseError as e:

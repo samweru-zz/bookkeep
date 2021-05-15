@@ -12,7 +12,7 @@ class Coa(models.Model):
 	token = models.CharField(max_length=200)
 	rules = models.TextField()
 
-class TrxLog(models.Model):
+class Trx(models.Model):
 	tno = models.CharField(max_length=200)
 	descr = models.TextField(default="N/A")
 	qamt = models.FloatField() #total amount
@@ -20,11 +20,12 @@ class TrxLog(models.Model):
 	status = models.CharField(max_length=200, default="Pending")
 	created_at = models.DateTimeField(auto_now=True)
 
-class Trx(models.Model):
+class Ledger(models.Model):
 	tno = models.CharField(max_length=200)
 	dr = models.ForeignKey(Coa, related_name="TrxDebit", on_delete=models.DO_NOTHING)
 	cr = models.ForeignKey(Coa, related_name="TrxCredit", on_delete=models.DO_NOTHING)
 	amt = models.FloatField()
+	created_at = models.DateTimeField(auto_now=True)
 
 class TrxType(models.Model):
 	token = models.CharField(max_length=200)
