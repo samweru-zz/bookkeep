@@ -1,4 +1,4 @@
-from books.controllers import trx
+from books.controllers import sale
 from books.models import *
 
 import unittest
@@ -13,8 +13,8 @@ class TrxTestCase(unittest.TestCase):
 			entry.delete()
 
 	def test_trx(self):
-		ltrx = trx.prepSale(1200, "blah1")
-		success = trx.makeSale(ltrx.tno)
+		ltrx = sale.invoice(1200, "blah1")
+		success = sale.receipt(ltrx.tno)
 		self.trxNo = ltrx.tno
 
 		self.assertIsInstance(ltrx, Trx)

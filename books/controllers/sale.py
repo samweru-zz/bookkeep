@@ -1,23 +1,16 @@
 from books.models import *
-from bookkeep.util.number import Number 
+from bookkeep.util.number import Number
+from bookkeep.util.ruler import Ruler
+from books.controllers import accountant
+
 from django.db import DatabaseError, transaction
 from django.utils.crypto import get_random_string
-
-from ruler import Ruler
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-def transfer(trxNo: str, token: str, amt: float):
-	trxType = TrxType.objects.get(token=token)
-
-	debit = Coa.objects.get(alias=trxType.dr.alias)
-	credit = Coa.objects.get(alias=trxType.cr.alias)
-
-	return Ledger(tno=trxNo, dr=debit, cr=credit, amt=amt)
-	
-def prepSale(amt, descr):
+def invoice(amt, descr):
 	taxAmt, netSaleAmt = getSaleVsTaxAlloc(amt=amt)
 
 	trxNo = get_random_string().upper()
@@ -28,14 +21,14 @@ def prepSale(amt, descr):
 		with transaction.atomic():
 			trx = Trx(tno=trxNo, qamt=amt, bal=amt, descr=descr)
 			trx.save()
-			transfer(trxNo=trxNo, token="prepare.sale", amt=netSaleAmt).save()
-			transfer(trxNo=trxNo, token="prepare.sale.tax", amt=taxAmt).save()
+			accountant.transfer(trxNo=trxNo, token="prepare.sale", amt=netSaleAmt).save()
+			accountant.transfer(trxNo=trxNo, token="prepare.sale.tax", amt=taxAmt).save()
 	except DatabaseError as e:
 		logger.error(e)
 
 	return trx
 
-def makeSale(trxNo: str, amt: float=None):
+def receipt(trxNo: str, amt: float=None):
 	trx = Trx.objects.get(tno=trxNo)
 
 	if(amt is None):
@@ -56,8 +49,8 @@ def makeSale(trxNo: str, amt: float=None):
 			trx.bal = bal
 			trx.status = status
 			trx.save()
-			transfer(trxNo=trxNo, token="apply.sale", amt=netSaleAmt).save()
-			transfer(trxNo=trxNo, token="apply.sale.tax", amt=taxAmt).save()
+			accountant.transfer(trxNo=trxNo, token="apply.sale", amt=netSaleAmt).save()
+			accountant.transfer(trxNo=trxNo, token="apply.sale.tax", amt=taxAmt).save()
 
 		return True
 	except DatabaseError as e:

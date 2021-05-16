@@ -5,11 +5,11 @@ class Ruler:
 	def parse(self, rule: str):
 		return [{item.split(":")[0]:item.split(":")[-1]} for item in [rules for rules in rule.split("|")]]
 
-	def verify(self, cond: str):
-		for item in [rules for rules in self.rule.split("|")]:
-			
-				return True
-		return False
+	# def verify(self, cond: str):
+		# for item in [rules for rules in self.rule.split("|")]:
+		
+				# return True
+		# return False
 
 	def get(self, key):
 		for item in [rules for rules in self.rule.split("|")]:
