@@ -22,13 +22,18 @@ def prepSale(amt, descr):
 
 	trxNo = get_random_string().upper()
 
+	trx = None
+
 	try:
 		with transaction.atomic():
-			Trx(tno=trxNo, qamt=amt, bal=amt, descr=descr).save()
+			trx = Trx(tno=trxNo, qamt=amt, bal=amt, descr=descr)
+			trx.save()
 			transfer(trxNo=trxNo, token="prepare.sale", amt=netSaleAmt).save()
 			transfer(trxNo=trxNo, token="prepare.sale.tax", amt=taxAmt).save()
 	except DatabaseError as e:
 		logger.error(e)
+
+	return trx
 
 def makeSale(trxNo: str, amt: float=None):
 	trx = Trx.objects.get(tno=trxNo)
@@ -53,8 +58,12 @@ def makeSale(trxNo: str, amt: float=None):
 			trx.save()
 			transfer(trxNo=trxNo, token="apply.sale", amt=netSaleAmt).save()
 			transfer(trxNo=trxNo, token="apply.sale.tax", amt=taxAmt).save()
+
+		return True
 	except DatabaseError as e:
 		logger.error(e)
+
+		return False
 
 def getSaleVsTaxAlloc(amt:float):
 	cfgSaleTax = TrxCfg.objects.get(token="sale.tax")
