@@ -88,5 +88,16 @@
 			"token":"capital",
 			"rules":"type:equity|owner:company"
 		}
+	},
+	{
+		"model":"books.coa",
+		"pk":9,
+		"fields":{
+			"code":3100,
+			"name":"Purchases",
+			"alias":"PUR",
+			"token":"expense",
+			"rules":"type:liability|term:short"
+		}
 	}
 ]

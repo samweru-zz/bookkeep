@@ -34,5 +34,23 @@
 			"dr":6,
 			"cr":1
 		}
+	},
+	{
+		"model":"books.trxtype",
+		"pk":5,
+		"fields":{
+			"token":"prepare.purchase",
+			"dr":9,
+			"cr":5
+		}
+	},
+	{
+		"model":"books.trxtype",
+		"pk":6,
+		"fields":{
+			"token":"pay.purchase",
+			"dr":5,
+			"cr":1
+		}
 	}
 ]

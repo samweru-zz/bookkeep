@@ -4,16 +4,16 @@ from bookkeep.util.ruler import Ruler
 from books.controllers import accountant
 
 from django.db import DatabaseError, transaction
-from django.utils.crypto import get_random_string
+
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 def invoice(amt, descr):
-	taxAmt, netSaleAmt = getSaleVsTaxAlloc(amt=amt)
+	taxAmt, netSaleAmt = getSaleTaxRatio(amt=amt)
 
-	trxNo = get_random_string().upper()
+	trxNo = accountant.getTrxNo("INV")
 
 	trx = None
 
@@ -30,19 +30,8 @@ def invoice(amt, descr):
 
 def receipt(trxNo: str, amt: float=None):
 	trx = Trx.objects.get(tno=trxNo)
-
-	if(amt is None):
-		amt = trx.qamt
-
-	if(amt > trx.bal):
-		raise Exception("Residual sale amount cannot be greater than balance!")
-
-	taxAmt, netSaleAmt = getSaleVsTaxAlloc(amt=amt)
-	bal = trx.bal - amt
-
-	status = "Pending"
-	if(bal == 0):
-		status = "Final"
+	bal, status = accountant.getBalStatus(amt, trx)
+	taxAmt, netSaleAmt = getSaleTaxRatio(amt=amt)
 
 	try:
 		with transaction.atomic():
@@ -58,7 +47,7 @@ def receipt(trxNo: str, amt: float=None):
 
 		return False
 
-def getSaleVsTaxAlloc(amt:float):
+def getSaleTaxRatio(amt:float):
 	cfgSaleTax = TrxCfg.objects.get(token="sale.tax")
 	rules = Ruler(cfgSaleTax.rules)
 	taxRate = float(rules.get("tax"))
