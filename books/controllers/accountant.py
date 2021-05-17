@@ -11,7 +11,7 @@ def getBalStatus(amt, trx: Trx):
 		amt = trx.qamt
 
 	if(amt > trx.bal):
-		raise Exception("Residual sale amount cannot be greater than balance!")
+		raise Exception("Residual amount cannot be greater than balance!")
 
 	bal = trx.bal - amt
 

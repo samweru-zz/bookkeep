@@ -40,6 +40,6 @@ class TrxCfg(models.Model):
 
 class TrxAlloc(models.Model):
 	acc = models.ForeignKey(Coa, on_delete=models.DO_NOTHING)
-	amt = models.FloatField()
+	amt = models.FloatField() #change to balance
 	limit = models.FloatField() #limit of allocation
 	created_at = models.DateTimeField(auto_now=True)
