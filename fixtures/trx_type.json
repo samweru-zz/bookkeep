@@ -10,15 +10,6 @@
 	},
 	{
 		"model":"books.trxtype",
-		"pk":2,
-		"fields":{
-			"token":"prepare.sale.tax",
-			"dr":4,
-			"cr":6
-		}
-	},
-	{
-		"model":"books.trxtype",
 		"pk":3,
 		"fields":{
 			"token":"apply.sale",
@@ -51,6 +42,15 @@
 			"token":"pay.purchase",
 			"dr":5,
 			"cr":1
+		}
+	},
+	{
+		"model":"books.trxtype",
+		"pk":7,
+		"fields":{
+			"token":"apply.cogs",
+			"dr":10,
+			"cr":9
 		}
 	}
 ]

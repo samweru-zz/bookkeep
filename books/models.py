@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 
 class Period(models.Model):
 	pno = models.CharField(max_length=200)
@@ -42,4 +43,27 @@ class TrxAlloc(models.Model):
 	acc = models.ForeignKey(Coa, on_delete=models.DO_NOTHING)
 	amt = models.FloatField() #change to balance
 	limit = models.FloatField() #limit of allocation
+	created_at = models.DateTimeField(auto_now=True)
+
+class Catalogue(models.Model):
+	name = models.CharField(max_length=200)
+	price = models.FloatField() #change to balance
+	descr = models.TextField(default="N/A")
+	status = models.CharField(max_length=200, default="Active")
+	created_at = models.DateTimeField(default=datetime.now)
+
+class Stock(models.Model):
+	cat = models.ForeignKey(Catalogue, on_delete=models.DO_NOTHING)
+	code = models.CharField(max_length=200)
+	unit_bal = models.IntegerField(default=0)
+	unit_total = models.IntegerField(default=0)
+	unit_cost = models.FloatField()
+	status = models.CharField(max_length=200, default="Pending")
+	created_at = models.DateTimeField(default=datetime.now)
+
+class Order(models.Model):
+	tno = models.CharField(max_length=200)
+	item = models.ForeignKey(Stock, on_delete=models.DO_NOTHING)
+	units = models.IntegerField(default=0)
+	status = models.CharField(max_length=200, default="Pending")
 	created_at = models.DateTimeField(auto_now=True)

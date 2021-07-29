@@ -93,9 +93,20 @@
 		"model":"books.coa",
 		"pk":9,
 		"fields":{
-			"code":3100,
-			"name":"Purchases",
-			"alias":"PUR",
+			"code":5100,
+			"name":"Inventory",
+			"alias":"INV",
+			"token":"inventory",
+			"rules":"type:asset|term:short"
+		}
+	},
+	{
+		"model":"books.coa",
+		"pk":10,
+		"fields":{
+			"code":6100,
+			"name":"Cost of Goods Sold",
+			"alias":"COGS",
 			"token":"expense",
 			"rules":"type:liability|term:short"
 		}

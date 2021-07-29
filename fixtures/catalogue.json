@@ -1,0 +1,26 @@
+[
+	{
+		"model":"books.catalogue",
+		"pk":1,
+		"fields":{
+			"name":"Cups",
+			"price":200.00
+		}
+	},
+	{
+		"model":"books.catalogue",
+		"pk":2,
+		"fields":{
+			"name":"Shoes",
+			"price":350.00
+		}
+	},
+	{
+		"model":"books.catalogue",
+		"pk":3,
+		"fields":{
+			"name":"Coats",
+			"price":150.00
+		}
+	}
+]
