@@ -33,19 +33,24 @@ def receipt(trxNo: str, amt: float=None):
 	bal, status = acc.getBalStatus(amt, trx)
 	tax = getSaleTax(amt=amt)
 
+	order = SalesOrder.findByTrxNo(trxNo)
+	cogs = order.getTotalCost()
+
 	rtrxNo = acc.withTrxNo("REC", trxNo)
 
 	try:
 		with transaction.atomic():
-			trx.bal = bal
-			trx.status = status
-			trx.save()
+			if trx.status == "Pending":
+				trx.bal = bal
+				trx.status = status
+				trx.save()
 
-			acc.transfer(trxNo=rtrxNo, token="apply.sale", amt=amt).save()
-			acc.transfer(trxNo=rtrxNo, token="apply.sale.tax", amt=tax).save()
-			acc.transfer(trxNo=rtrxNo, token="apply.cogs", amt=cogs).save()
+				acc.transfer(trxNo=rtrxNo, token="apply.sale", amt=amt).save()
+				acc.transfer(trxNo=rtrxNo, token="apply.sale.tax", amt=tax).save()
+				acc.transfer(trxNo=rtrxNo, token="apply.cogs", amt=cogs).save()
 
-		return True
+				return True
+		return False
 	except DatabaseError as e:
 		logger.error(e)
 
