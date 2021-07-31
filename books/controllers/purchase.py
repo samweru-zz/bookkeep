@@ -1,5 +1,6 @@
 from books.models import *
-from books.controllers import accountant
+from books.controllers import accountant as acc
+from books.controllers.inventory import Order as PurchaseOrder
 
 from django.db import DatabaseError, transaction
 
@@ -8,10 +9,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 #local purchase order
-def order(amt, descr):
-	trxNo = accountant.getTrxNo("PUR")
-
-	trx = None
+def order(order: PurchaseOrder, descr:str):
+	# trxNo = accountant.getTrxNo("PUR")
+	# trx = None
+	trxNo = order.trxNo
+	amt = order.getTotalCost()
 
 	try:
 		with transaction.atomic():

@@ -4,6 +4,7 @@
 		"pk":1,
 		"fields":{
 			"code":"DHF353HD",
+			"tno":"PUR3L0R7G2GE0K7",
 			"cat":1,
 			"unit_bal": 10,
 			"unit_total": 10,
@@ -15,6 +16,7 @@
 		"pk":2,
 		"fields":{
 			"code":"FH3333H5",
+			"tno":"PUR3L0R7G2GE0K7",
 			"cat":1,
 			"unit_bal": 20,
 			"unit_total": 20,
@@ -26,6 +28,7 @@
 		"pk":3,
 		"fields":{
 			"code":"45FHR55I",
+			"tno":"PURZ50THHKBMSOM",
 			"cat":2,
 			"unit_bal": 25,
 			"unit_total": 25,

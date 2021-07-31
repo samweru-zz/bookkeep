@@ -19,14 +19,24 @@ class Trx(models.Model):
 	qamt = models.FloatField() #total amount
 	bal = models.FloatField(default=0) #balance
 	status = models.CharField(max_length=200, default="Pending")
-	created_at = models.DateTimeField(auto_now=True)
+	created_at = models.DateTimeField(default=datetime.now)
+	# created_at = models.DateTimeField(auto_now=True)
+
+class Schedule(models.Model):
+	tno = models.CharField(max_length=200)
+	descr = models.TextField(default="N/A")
+	amt = models.FloatField()
+	status = models.CharField(max_length=200, default="Pending")
+	created_at = models.DateTimeField(default=datetime.now)
+	# created_at = models.DateTimeField(auto_now=True)
 
 class Ledger(models.Model):
 	tno = models.CharField(max_length=200)
 	dr = models.ForeignKey(Coa, related_name="TrxDebit", on_delete=models.DO_NOTHING)
 	cr = models.ForeignKey(Coa, related_name="TrxCredit", on_delete=models.DO_NOTHING)
 	amt = models.FloatField()
-	created_at = models.DateTimeField(auto_now=True)
+	created_at = models.DateTimeField(default=datetime.now)
+	# created_at = models.DateTimeField(auto_now=True)
 
 class TrxType(models.Model):
 	token = models.CharField(max_length=200)
@@ -53,6 +63,7 @@ class Catalogue(models.Model):
 	created_at = models.DateTimeField(default=datetime.now)
 
 class Stock(models.Model):
+	tno = models.CharField(max_length=200)
 	cat = models.ForeignKey(Catalogue, on_delete=models.DO_NOTHING)
 	code = models.CharField(max_length=200)
 	unit_bal = models.IntegerField(default=0)

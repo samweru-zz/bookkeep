@@ -1,0 +1,24 @@
+[
+	{
+		"model":"books.trx",
+		"pk":1,
+		"fields":{
+			"tno":"PUR3L0R7G2GE0K7",
+			"descr":"N/A",
+			"qamt":2800.00,
+			"bal":0.00,
+			"status":"Final"
+		}
+	},
+	{
+		"model":"books.trx",
+		"pk":2,
+		"fields":{
+			"tno":"PURZ50THHKBMSOM",
+			"descr":"N/A",
+			"qamt":1875.00,
+			"bal":0.00,
+			"status":"Final"
+		}
+	}
+]

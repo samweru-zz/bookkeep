@@ -1,0 +1,22 @@
+[
+	{
+		"model":"books.schedule",
+		"pk":1,
+		"fields":{
+			"tno":"PUR3L0R7G2GE0K7",
+			"descr":"N/A",
+			"amt": 2500.00,
+			"status":"Final"
+		}
+	},
+	{
+		"model":"books.schedule",
+		"pk":2,
+		"fields":{
+			"tno":"PURZ50THHKBMSOM",
+			"descr":"N/A",
+			"amt": 1875.00,
+			"status":"Final"
+		}
+	}
+]

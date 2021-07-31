@@ -2,6 +2,8 @@ from books.models import *
 
 from django.utils.crypto import get_random_string
 
+import random, string
+
 def getTrxNo(prefix):
 	random = get_random_string().upper()
 	return prefix + random
@@ -24,7 +26,6 @@ def getBalStatus(amt, trx: Trx):
 
 	return bal, status
 
-
 def transfer(trxNo: str, token: str, amt: float):
 	trxType = TrxType.objects.get(token=token)
 
@@ -32,3 +33,6 @@ def transfer(trxNo: str, token: str, amt: float):
 	credit = Coa.objects.get(alias=trxType.cr.alias)
 
 	return Ledger(tno=trxNo, dr=debit, cr=credit, amt=amt)
+
+def randAlphaNum(length:int=8):
+	return ''.join(random.choices(string.ascii_letters + string.digits, k=length)).upper()
