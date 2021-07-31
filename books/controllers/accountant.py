@@ -34,5 +34,5 @@ def transfer(trxNo: str, token: str, amt: float):
 
 	return Ledger(tno=trxNo, dr=debit, cr=credit, amt=amt)
 
-def randAlphaNum(length:int=8):
+def getCode(length:int=8):
 	return ''.join(random.choices(string.ascii_letters + string.digits, k=length)).upper()

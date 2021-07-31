@@ -10,8 +10,6 @@ logger = logging.getLogger(__name__)
 
 #local purchase order
 def order(order: PurchaseOrder, descr:str):
-	# trxNo = accountant.getTrxNo("PUR")
-	# trx = None
 	trxNo = order.trxNo
 	amt = order.getTotalCost()
 
@@ -19,7 +17,7 @@ def order(order: PurchaseOrder, descr:str):
 		with transaction.atomic():
 			trx = Trx(tno=trxNo, qamt=amt, bal=amt, descr=descr)
 			trx.save()
-			accountant.transfer(trxNo=trxNo, token="prepare.purchase", amt=amt).save()
+			acc.transfer(trxNo=trxNo, token="prepare.purchase", amt=amt).save()
 	except DatabaseError as e:
 		logger.error(e)
 
@@ -28,16 +26,16 @@ def order(order: PurchaseOrder, descr:str):
 #payment receipt
 def pay(trxNo: str, amt: float=None):
 	trx = Trx.objects.get(tno=trxNo)
-	bal, status = accountant.getBalStatus(amt, trx)
+	bal, status = acc.getBalStatus(amt, trx)
 
-	ptrxNo = accountant.withTrxNo("PAY", trxNo)
+	ptrxNo = acc.withTrxNo("PAY", trxNo)
 
 	try:
 		with transaction.atomic():
 			trx.bal = bal
 			trx.status = status
 			trx.save()
-			accountant.transfer(trxNo=ptrxNo, token="pay.purchase", amt=amt).save()
+			acc.transfer(trxNo=ptrxNo, token="pay.purchase", amt=amt).save()
 
 		return True
 	except DatabaseError as e:

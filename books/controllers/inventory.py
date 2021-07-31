@@ -1,8 +1,7 @@
 from books.models import Stock, Catalogue
+from books.controllers import accountant as acc
 
 from django.db import DatabaseError, transaction
-
-from books.controllers import accountant as acc
 
 import logging
 
@@ -58,8 +57,8 @@ class Order:
 			with transaction.atomic():
 				for item in self.itemList:
 					stock = Stock(cat=item.get("cat"), 
-									code=acc.randAlphaNum(),
-									# trx_no=self.trxNo,
+									code=acc.getCode(),
+									tno=self.trxNo,
 									unit_bal=item.get("units"), 
 									unit_total=item.get("units"), 
 									unit_cost=item.get("unit_cost"))
@@ -79,9 +78,12 @@ class Order:
 
 	def findByTrxNo(trxNo:str):
 		purchaseOrder = None
-		stocks = Stock.objects.filter(trx_no=trxNo)
+		stocks = Stock.objects.filter(tno=trxNo)
 		if(stocks.count() > 0):
 			purchaseOrder = Order(trxNo)
 			for stock in stock:
-				purchaseOrder.add(cat=stock.cat,)
+				purchaseOrder.add(cat=stock.cat, units=stock.unit_total, unit_cost=stock.unit_cost)
+
+			return purchaseOrder
+		return None
 
