@@ -19,7 +19,7 @@ class Trx(models.Model):
 	qamt = models.FloatField() #total amount
 	bal = models.FloatField(default=0) #balance
 	status = models.CharField(max_length=200, default="Pending")
-	created_at = models.DateTimeField(default=datetime.now)
+	created_at = models.DateTimeField(default=datetime.now, editable=True)
 	# created_at = models.DateTimeField(auto_now=True)
 
 class Schedule(models.Model):
