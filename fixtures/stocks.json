@@ -34,5 +34,31 @@
 			"unit_total": 25,
 			"unit_cost": 75.00
 		}
+	},
+	{
+		"model":"books.stock",
+		"pk":4,
+		"fields":{
+			"code":"DHF353HD",
+			"tno":"PURQJ8YWXWHQ8TQ",
+			"cat":2,
+			"unit_bal": 20,
+			"unit_total": 20,
+			"unit_cost": 5.00,
+			"status":"Order:Pending"
+		}
+	},
+	{
+		"model":"books.stock",
+		"pk":5,
+		"fields":{
+			"code":"FH3333H5",
+			"tno":"PURQJ8YWXWHQ8TQ",
+			"cat":2,
+			"unit_bal": 20,
+			"unit_total": 20,
+			"unit_cost": 5.00,
+			"status":"Order:Pending"
+		}
 	}
 ]

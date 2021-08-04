@@ -18,5 +18,15 @@
 			"amt": 1875.00,
 			"status":"Final"
 		}
+	},
+	{
+		"model":"books.schedule",
+		"pk":3,
+		"fields":{
+			"tno":"SCHQJ8YWXWHQ8TQ",
+			"descr":"N/A",
+			"amt": 200.00,
+			"status":"Pending"
+		}
 	}
 ]

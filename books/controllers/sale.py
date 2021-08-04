@@ -62,4 +62,3 @@ def getSaleTax(amt:float):
 	taxRate = float(rules.get("tax"))
 
 	return amt * taxRate
-

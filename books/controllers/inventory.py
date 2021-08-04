@@ -52,24 +52,32 @@ class Order:
 
 		return tt_cost
 
-	def save(self):
+
+	def saveWithTrxNo(self, trxNo:str):
 		try:
-			with transaction.atomic():
-				for item in self.itemList:
-					stock = Stock(cat=item.get("cat"), 
-									code=acc.getCode(),
-									tno=self.trxNo,
-									unit_bal=item.get("units"), 
-									unit_total=item.get("units"), 
-									unit_cost=item.get("unit_cost"))
+			if trxNo is not None:
+				with transaction.atomic():
+					for item in self.itemList:
+						stock = Stock(cat=item.get("cat"), 
+										code=acc.getCode(),
+										tno=trxNo,
+										unit_bal=item.get("units"), 
+										unit_total=item.get("units"), 
+										unit_cost=item.get("unit_cost"))
 
-					stocks = Order.getActiveStockByCategory(item.get("cat"))
-					if(stocks.count() == 0):
-						stock.status = "Active"
-						
-					stock.save()
+						"""
+						If there are no other active stock batches, make current
+						stock batch active
+						"""
+						stocks = Order.getActiveStockByCategory(item.get("cat"))
+						if(stocks.count() == 0):
+							stock.status = "Active"
+							
+						stock.save()
 
-				return True
+					self.trxNo = trxNo
+
+					return True
 			return False
 		except DatabaseError as e:
 			logger.error(e)
@@ -77,13 +85,16 @@ class Order:
 			return False
 
 	def findByTrxNo(trxNo:str):
-		purchaseOrder = None
-		stocks = Stock.objects.filter(tno=trxNo)
+		invOrder = None
+		# stocks = Stock.objects.filter(tno=trxNo)
+		stocks = Stock.objects.filter(tno__contains=trxNo)
 		if(stocks.count() > 0):
-			purchaseOrder = Order(trxNo)
-			for stock in stock:
-				purchaseOrder.add(cat=stock.cat, units=stock.unit_total, unit_cost=stock.unit_cost)
+			invOrder = Order(trxNo)
+			for stock in stocks:
+				invOrder.add(cat=stock.cat,
+								units=stock.unit_total,
+								unit_cost=stock.unit_cost)
 
-			return purchaseOrder
+			return invOrder
 		return None
 

@@ -9,7 +9,7 @@ def getTrxNo(prefix):
 	return prefix + random
 
 def withTrxNo(prefix, trxNo):
-	return prefix + trxNo[3:-1]
+	return prefix + trxNo[3:]
 
 def getBalStatus(amt, trx: Trx):
 	if(amt is None):

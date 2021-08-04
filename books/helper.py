@@ -13,7 +13,7 @@ def to_dict(model):
 	return data
 
 
-def rs_to_dict(rs):
+def to_rslist(rs):
 	data = []
 	for obj in rs:
 		data.append(helper.to_dict(obj))

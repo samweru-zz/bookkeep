@@ -1,6 +1,6 @@
 from books.models import *
 from books.controllers import accountant as acc
-from books.controllers.inventory import Order as PurchaseOrder
+from books.controllers.inventory import Order as InvOrder
 
 from django.db import DatabaseError, transaction
 
@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 #local purchase order
-def order(order: PurchaseOrder, descr:str):
+def order(order: InvOrder, descr:str):
 	trxNo = order.trxNo
 	amt = order.getTotalCost()
 

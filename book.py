@@ -3,19 +3,21 @@ import sys
 import os
 import django
 import warnings
+import tabulate
 
-from books import helper
 from django.core.serializers import serialize
 from django.db import DatabaseError, transaction
-import tabulate
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, "../")
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookkeep.settings')
 django.setup()
 
+from books import helper
 from books.models import *
 from books.controllers import accountant as acc
+from books.controllers import purchase as pur
+from books.controllers.inventory import Order as InvOrder
 
 @click.group()
 def main():
@@ -35,17 +37,38 @@ def new(descr:str, amt:float):
 def sch_last(offset):
 	rs = Schedule.objects.all().order_by("-id")[:offset]
 	if rs.count()>0:
-		data = helper.rs_to_dict(rs)
+		data = helper.to_rslist(rs)
 		click.echo(tabulate.tabulate(data, headers='keys'))
 	else:
 		click.echo("Couldn't find anything!")
-	# click.echo(serialize('json', rs, indent=2))
+
+@main.command("sch:push")
+@click.argument('id')
+@click.option("--ttype", type=click.Choice(['lpo', 'none'], case_sensitive=False), required=True)
+@click.option("--descr", default="N/A")
+def sch_push(id:int, descr:str, ttype:str):
+	try:
+		with transaction.atomic():
+			sch = Schedule.objects.get(id=id)
+			sch.status="Final"
+			sch.save()
+
+			trxNo = sch.tno
+			if(ttype == "lpo"):
+				trxNo = acc.withTrxNo("PUR", sch.tno)
+
+			order = InvOrder.findByTrxNo(trxNo)
+			trx = pur.order(order, descr)
+	except DatabaseError as e:
+		logger.error(e)
+
+	click.echo("Purchase Trx | No.: %s created successfully!" % trx.tno)
 
 @main.command("trx:last")
 @click.argument('offset', required=False, default=1)
 def trx_last(offset):
 	rs = Trx.objects.all().order_by("-id")[:offset]	
-	data = helper.rs_to_dict(rs)
+	data = helper.to_rslist(rs)
 	click.echo(tabulate.tabulate(data, headers='keys'))
 
 @main.command("cat:new")
@@ -61,7 +84,7 @@ def cat_new(name:str, price:float, descr:str):
 @click.argument('offset', required=False, default=1)
 def cat_last(offset):
 	rs = Catalogue.objects.all().order_by("-id")[:offset]	
-	data = helper.rs_to_dict(rs)
+	data = helper.to_rslist(rs)
 	click.echo(tabulate.tabulate(data, headers='keys'))
 
 @main.command("cat:filter")
@@ -69,7 +92,7 @@ def cat_last(offset):
 def cat_filter(name):
 	rs = Catalogue.objects.filter(name__icontains=name)
 	if rs.count()>0:
-		data = helper.rs_to_dict(rs)
+		data = helper.to_rslist(rs)
 		click.echo(tabulate.tabulate(data, headers='keys'))
 	else:
 		click.echo("Couldn't find anything!")
@@ -79,7 +102,7 @@ def cat_filter(name):
 @click.argument('cat_id')
 @click.argument('units')
 @click.argument('unit_cost')
-def lpo_new(sch_id:int, cat_id:int, units:int, unit_cost:float):
+def lpo_add(sch_id:int, cat_id:int, units:int, unit_cost:float):
 	try:
 		with transaction.atomic():
 			sch = Schedule.objects.get(id=sch_id)
@@ -92,11 +115,11 @@ def lpo_new(sch_id:int, cat_id:int, units:int, unit_cost:float):
 			code = acc.getCode()
 			ptrxNo = acc.withTrxNo("PUR", sch.tno)
 			order = Stock(tno=ptrxNo, 
-					cat=cat, 
-					code=code, 
-					unit_total=units, 
-					unit_cost=unit_cost, 
-					status="Scheduled")
+						cat=cat, 
+						code=code, 
+						unit_total=units, 
+						unit_cost=unit_cost, 
+						status="Order:Pending")
 			order.save()
 	except Exception as e:
 		click.echo("Purcase Order: Couldn't add item!")
@@ -109,7 +132,7 @@ def lpo_new(sch_id:int, cat_id:int, units:int, unit_cost:float):
 def stock_filter(name):
 	rs = Stock.objects.filter(name__icontains=name)
 	if rs.count()>0:
-		data = helper.rs_to_dict(rs)
+		data = helper.to_rslist(rs)
 		click.echo(tabulate.tabulate(data, headers='keys'))
 	else:
 		click.echo("Couldn't find anything!")
@@ -129,6 +152,23 @@ def stock_last(offset):
 			"unit_cost": float(row.unit_cost),
 			"total_units":row.unit_total,
 			"status":row.status,
+			"created_at":row.created_at.strftime("%A %d. %B %Y")
+		})
+
+	click.echo(tabulate.tabulate(data, headers='keys'))
+
+@main.command("entry:last")
+@click.argument('offset', required=False, default=1)
+def entry_last(offset):
+	rs = Ledger.objects.all().order_by("-id")[:offset]	
+	data = []
+	for row in rs:
+		data.append({
+
+			"id":row.id,
+			"trx_no":row.tno,
+			"trx_type":"dr:%s|cr:%s" % (row.dr.name, row.cr.name),
+			"amt":row.amt,
 			"created_at":row.created_at.strftime("%A %d. %B %Y")
 		})
 
