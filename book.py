@@ -103,6 +103,7 @@ def cat_filter(name):
 @click.argument('units')
 @click.argument('unit_cost')
 def lpo_add(sch_id:int, cat_id:int, units:int, unit_cost:float):
+	"""Add a number of units of a categorized item to a local purchase order"""
 	try:
 		with transaction.atomic():
 			sch = Schedule.objects.get(id=sch_id)
