@@ -4,6 +4,11 @@ import os
 import django
 import warnings
 import tabulate
+import datetime
+
+# from freezegun import freeze_time
+# freezer = freeze_time("2012-01-14")
+# freezer.start()
 
 from django.core.serializers import serialize
 from django.db import DatabaseError, transaction
@@ -20,6 +25,7 @@ from books.controllers import purchase as pur
 from books.controllers.inventory import Order as InvOrder
 
 @click.group()
+# @freeze_time("1955-11-12")
 def main():
     pass
 
@@ -75,10 +81,11 @@ def trx_last(offset):
 @click.argument('name')
 @click.argument('price')
 @click.argument('descr', required=False, default="N/A")
+# @freeze_time("1955-11-12")
 def cat_new(name:str, price:float, descr:str):
 	cat = Catalogue(name=name, price=price, descr=descr, status="Active")
 	cat.save()
-	click.echo("Id: %d | Name: %s | Amount: %d" % (cat.id, cat.name, cat.price))
+	click.echo("Id: %d | Name: %s | Amount: %s" % (cat.id, cat.name, cat.price))
 
 @main.command("cat:last")
 @click.argument('offset', required=False, default=1)
@@ -131,9 +138,22 @@ def lpo_add(sch_id:int, cat_id:int, units:int, unit_cost:float):
 @main.command("stock:filter")
 @click.argument('name')
 def stock_filter(name):
-	rs = Stock.objects.filter(name__icontains=name)
+	rs = Stock.objects.filter(cat__name__icontains=name)
+	data = []
 	if rs.count()>0:
-		data = helper.to_rslist(rs)
+		for row in rs:
+			data.append({
+
+				"id":row.id,
+				"tno":row.tno,
+				"name":row.cat.name,
+				"code":row.code,
+				"unit_bal":row.unit_bal,
+				"unit_total":row.unit_total,
+				"unit_cost":row.unit_cost,
+				"status":row.status,
+				"created_at":row.created_at.strftime("%A %d. %B %Y")
+			})
 		click.echo(tabulate.tabulate(data, headers='keys'))
 	else:
 		click.echo("Couldn't find anything!")
@@ -175,5 +195,13 @@ def entry_last(offset):
 
 	click.echo(tabulate.tabulate(data, headers='keys'))
 
-if __name__ == '__main__':
+# @main.command("test:test")
+# @freeze_time("1955-11-12")
+# def test():
+	# with freeze_time("1955-11-12"):
+	# print(datetime.now().strftime("%Y-%m-%d"))
+
+if __name__ == '__main__':	
 	main()
+
+# freezer.stop()

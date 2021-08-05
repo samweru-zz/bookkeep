@@ -64,7 +64,7 @@ class Catalogue(models.Model):
 
 class Stock(models.Model):
 	tno = models.CharField(max_length=200)
-	cat = models.ForeignKey(Catalogue, on_delete=models.DO_NOTHING)
+	cat = models.ForeignKey(Catalogue, related_name="XCatalogue", on_delete=models.DO_NOTHING)
 	code = models.CharField(max_length=200)
 	unit_bal = models.IntegerField(default=0)
 	unit_total = models.IntegerField(default=0)
