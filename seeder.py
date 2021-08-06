@@ -3,7 +3,6 @@ import sys
 import os
 import django
 import warnings
-# import tabulate
 import json
 import datetime
 
@@ -27,8 +26,7 @@ def all():
 		for item in items:
 			module, model = item.get("model").split(".")
 			entity = apps.get_model(module, model)()
-			# print("*******%s" % model)
-			
+
 			fields = item.get("fields")
 			props = [f.name for f in entity._meta.fields]
 			if "created_at" in props:
@@ -39,7 +37,7 @@ def all():
 					prop_name = prop.name
 					if(prop.related_model is not None):
 						prop_name = "%s_id" % prop.name
-					# print("---%s" % prop_name)
+					
 					setattr(entity, prop_name, fields.get(prop.name))
 		
 			entity.save()

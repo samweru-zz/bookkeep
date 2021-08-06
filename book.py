@@ -178,6 +178,37 @@ def stock_last(offset):
 
 	click.echo(tabulate.tabulate(data, headers='keys'))
 
+@main.command("entry:rev")
+@click.argument('id')
+@click.argument('amt', required=False, default=None)
+def entry_rev(id:int, amt:float):
+	"""
+	Reverse a transaction entry
+	"""
+	oEntry = Ledger.objects.get(id=id)
+	trx = Trx.objects.filter(tno__icontains=oEntry.tno[3:])[0]
+
+	status = None
+	if amt is None:
+		amt = oEntry.amt
+		status = "Reversal"
+
+	if amt <= oEntry.amt and amt <= trx.bal and oEntry.status != "Final":
+		try:
+			with transaction.atomic():
+				nEntry = acc.reverse(entry=oEntry, amt=amt)
+				nEntry.save()
+
+				if status is not None:
+					oEntry.status = status
+					oEntry.save()
+		except DatabaseError as e:
+			logger.error(e)
+
+		click.echo("Rev.Id: %d | Rev.TrxNo: %s" % (nEntry.id, nEntry.tno))
+	else:
+		click.echo("Failed to reverse!")
+ 
 @main.command("entry:last")
 @click.argument('offset', required=False, default=1)
 def entry_last(offset):

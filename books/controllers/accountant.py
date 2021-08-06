@@ -34,5 +34,11 @@ def transfer(trxNo: str, token: str, amt: float):
 
 	return Ledger(tno=trxNo, dr=debit, cr=credit, amt=amt)
 
+def reverse(entry: Ledger, amt: float):
+	credit = Coa.objects.get(id=entry.cr.id)
+	debit = Coa.objects.get(id=entry.dr.id)
+
+	return Ledger(tno=entry.tno, dr=credit, cr=debit, amt=amt)
+
 def getCode(length:int=8):
  	return ''.join(random.choices(string.ascii_letters + string.digits, k=length)).upper()
