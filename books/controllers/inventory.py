@@ -34,7 +34,7 @@ def subtract(cat: Catalogue, units: int):
 
 		return None
 
-class Order:
+class Requisition:
 	def __init__(self, trxNo:str):
  		self.itemList = []
  		self.trxNo = trxNo
@@ -69,7 +69,7 @@ class Order:
 						If there are no other active stock batches, make current
 						stock batch active
 						"""
-						stocks = Order.getActiveStockByCategory(item.get("cat"))
+						stocks = Requisition.getActiveStockByCategory(item.get("cat"))
 						if(stocks.count() == 0):
 							stock.status = "Active"
 							
@@ -85,16 +85,16 @@ class Order:
 			return False
 
 	def findByTrxNo(trxNo:str):
-		invOrder = None
+		invReq = None
 		# stocks = Stock.objects.filter(tno=trxNo)
 		stocks = Stock.objects.filter(tno__contains=trxNo)
 		if(stocks.count() > 0):
-			invOrder = Order(trxNo)
+			invReq = Requisition(trxNo)
 			for stock in stocks:
-				invOrder.add(cat=stock.cat,
+				invReq.add(cat=stock.cat,
 								units=stock.unit_total,
 								unit_cost=stock.unit_cost)
 
-			return invOrder
+			return invReq
 		return None
 

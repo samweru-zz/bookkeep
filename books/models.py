@@ -6,7 +6,7 @@ class Period(models.Model):
 	start_date = models.DateTimeField(auto_now=True)
 	end_date = models.DateTimeField()
 
-class Coa(models.Model): 
+class Coa(models.Model):
 	name = models.CharField(max_length=200)
 	code = models.IntegerField(default=0)
 	alias = models.CharField(max_length=200)

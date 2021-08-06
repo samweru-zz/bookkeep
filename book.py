@@ -22,7 +22,7 @@ from books import helper
 from books.models import *
 from books.controllers import accountant as acc
 from books.controllers import purchase as pur
-from books.controllers.inventory import Order as InvOrder
+from books.controllers.inventory import Requisition as InvReq
 
 @click.group()
 # @freeze_time("1955-11-12")
@@ -63,8 +63,8 @@ def sch_push(id:int, descr:str, ttype:str):
 			if(ttype == "lpo"):
 				trxNo = acc.withTrxNo("PUR", sch.tno)
 
-			order = InvOrder.findByTrxNo(trxNo)
-			trx = pur.order(order, descr)
+			req = InvReq.findByTrxNo(trxNo)
+			trx = pur.order(req, descr)
 	except DatabaseError as e:
 		logger.error(e)
 
@@ -123,7 +123,7 @@ def lpo_add(sch_id:int, cat_id:int, units:int, unit_cost:float):
 			code = acc.getCode()
 			ptrxNo = acc.withTrxNo("PUR", sch.tno)
 			order = Stock(tno=ptrxNo, 
-						cat=cat, 
+		 				cat=cat, 
 						code=code, 
 						unit_total=units, 
 						unit_cost=unit_cost, 
@@ -191,16 +191,14 @@ def entry_rev(id:int, amt:float):
 	status = None
 	if amt is None:
 		amt = oEntry.amt
-		status = "Reversal"
 
-	if amt <= oEntry.amt and amt <= trx.bal and oEntry.status != "Final":
+	if amt <= oEntry.amt and amt <= trx.bal:
 		try:
 			with transaction.atomic():
 				nEntry = acc.reverse(entry=oEntry, amt=amt)
 				nEntry.save()
 
 				if status is not None:
-					oEntry.status = status
 					oEntry.save()
 		except DatabaseError as e:
 			logger.error(e)
@@ -234,5 +232,3 @@ def entry_last(offset):
 
 if __name__ == '__main__':	
 	main()
-
-# freezer.stop()

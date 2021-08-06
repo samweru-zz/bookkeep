@@ -38,7 +38,9 @@ def reverse(entry: Ledger, amt: float):
 	credit = Coa.objects.get(id=entry.cr.id)
 	debit = Coa.objects.get(id=entry.dr.id)
 
-	return Ledger(tno=entry.tno, dr=credit, cr=debit, amt=amt)
+	trxNo = withTrxNo("REV", entry.tno)
+
+	return Ledger(tno=trxNo, dr=credit, cr=debit, amt=amt)
 
 def getCode(length:int=8):
  	return ''.join(random.choices(string.ascii_letters + string.digits, k=length)).upper()
