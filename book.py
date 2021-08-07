@@ -5,6 +5,7 @@ import django
 import warnings
 import tabulate
 import datetime
+import re
 
 # from freezegun import freeze_time
 # freezer = freeze_time("2012-01-14")
@@ -22,6 +23,8 @@ from books import helper
 from books.models import *
 from books.controllers import accountant as acc
 from books.controllers import purchase as pur
+from books.controllers import customer as cust
+from books.controllers import sale
 from books.controllers.inventory import Requisition as InvReq
 
 @click.group()
@@ -32,7 +35,7 @@ def main():
 @main.command("sch:new")
 @click.argument('descr')
 @click.argument('amt', required=False, default=0.00)
-def new(descr:str, amt:float):
+def sch_new(descr:str, amt:float):
 	trxNo = acc.getTrxNo("SCH")
 	sch = Schedule(tno=trxNo, amt=amt, descr=descr)
 	sch.save()
@@ -50,7 +53,8 @@ def sch_last(offset):
 
 @main.command("sch:push")
 @click.argument('id')
-@click.option("--ttype", type=click.Choice(['lpo', 'none'], case_sensitive=False), required=True)
+@click.option("--ttype", type=click.Choice(['lpo', 'sale', 'none'], case_sensitive=False), 
+							required=True)
 @click.option("--descr", default="N/A")
 def sch_push(id:int, descr:str, ttype:str):
 	try:
@@ -60,15 +64,18 @@ def sch_push(id:int, descr:str, ttype:str):
 			sch.save()
 
 			trxNo = sch.tno
-			if(ttype == "lpo"):
+			if ttype == "lpo":
 				trxNo = acc.withTrxNo("PUR", sch.tno)
-
-			req = InvReq.findByTrxNo(trxNo)
-			trx = pur.order(req, descr)
+				req = InvReq.findByTrxNo(trxNo)
+				trx = pur.order(req, descr)
+			elif ttype == "sale":
+				trxNo = acc.withTrxNo("SAL", sch.tno)
+				salesOrder = cust.Order.findByTrxNo(trxNo)
+				sale.invoice(salesOrder, descr)
 	except DatabaseError as e:
 		logger.error(e)
 
-	click.echo("Purchase Trx | No.: %s created successfully!" % trx.tno)
+	click.echo("Schedule | Trx No.: %s created successfully!" % trx.tno)
 
 @main.command("trx:last")
 @click.argument('offset', required=False, default=1)
@@ -223,6 +230,48 @@ def entry_last(offset):
 		})
 
 	click.echo(tabulate.tabulate(data, headers='keys'))
+
+@main.command("sale:disc")
+@click.argument('trx_id')
+@click.argument('amount')
+def sale_disc(trx_id:int, amount:int):
+	"""Apply sales discount"""
+	click.echo("To be implemented!")
+
+@main.command("sale:add")
+@click.option('--args', '-a', help="3 non-spaced comma separated values i.e sch_id,cat_id,units", required=True)
+def sale_add(args:str):
+	"""Description: Add to sales order"""
+	if not re.match('\d,\d,\d', args):
+		click.secho("Invalid list: requires integers only!", fg="red")
+
+	for arg in args.split(","):
+		if not arg.isnumeric():
+			click.secho("All list arguments must be integers!", fg="red")
+
+	sch_id, cat_id, units = args.split(",")
+ 
+	try:
+		with transaction.atomic():
+			sch=Schedule.objects.get(id=sch_id)
+			cat=Catalogue.objects.get(id=cat_id)
+
+			trxNo = acc.withTrxNo("SAL", sch.tno)
+
+			custOrder = cust.Order.findByTrxNo(trxNo)
+			isOrderEmpty = custOrder.isEmpty()
+			custOrder.addItem(cat=cat, units=int(units))
+
+			if isOrderEmpty:	
+				custOrder.saveWithTrxNo(trxNo)
+			else:
+				custOrder.save()
+
+		click.echo("Sales Order: Item added successfully.")
+	except Exception as e:
+		click.echo("Sales Order: Couldn't add item!")
+	except DatabaseError as e:
+		click.echo("Something went wrong!")
 
 # @main.command("test:test")
 # @freeze_time("1955-11-12")

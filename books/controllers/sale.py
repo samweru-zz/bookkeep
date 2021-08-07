@@ -21,7 +21,8 @@ def invoice(order: SalesOrder, descr: str):
 			trx = Trx(tno=trxNo, qamt=price, bal=price, descr=descr)
 			trx.save()
 			acc.transfer(trxNo=trxNo, token="prepare.sale", amt=price).save()
-			order.saveWithTrxNo(trxNo)
+			# order.saveWithTrxNo(trxNo)
+			# order.save()
 	except DatabaseError as e:
 		logger.error(e)
 
