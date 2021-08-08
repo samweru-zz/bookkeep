@@ -1,8 +1,8 @@
-Django Bookkeep
+Django Bookkeep (Inventory)
 ===
 
-This is a bookkeeping project for inventory and retail systems that demonstarted 
-double-entry bookkeeping. It is created in django python.
+This is a bookkeeping (proof-of-concept) project for inventory and retail systems that demonstarted 
+double-entry bookkeeping. It is created in django python sqlite3 and works on commandline only.
 
 
 # Install
@@ -14,7 +14,11 @@ pip install -r requirements.txt
 ```
 python manage.py makemigrations
 python manage.py migrate
-./bin/fixture.sh
+```
+
+#DB Seeder
+```
+python seeder.py seed:all
 ```
 
 # Usage
