@@ -11,16 +11,7 @@ from django.db import DatabaseError, transaction
 from django.apps import apps
 from freezegun import freeze_time
 
-@click.group()
-def main():
-	warnings.filterwarnings("ignore")
-	sys.path.insert(0, "../")
-	os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookkeep.settings')
-	django.setup()
-
-@main.command("seed:all")
-@freeze_time("2012-01-14")
-def all():
+def seedAll():
 	for json_file in os.listdir("fixtures"):
 		items = json.load(open("fixtures/%s" % json_file))
 		for item in items:
@@ -41,6 +32,22 @@ def all():
 					setattr(entity, prop_name, fields.get(prop.name))
 		
 			entity.save()
+
+@click.group()
+def main():
+	warnings.filterwarnings("ignore")
+	sys.path.insert(0, "../")
+	os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookkeep.settings')
+	django.setup()
+
+@main.command("seed:all")
+@click.option('--date', '-d', help="yyyy-mm-dd")
+def all(date:str=None):
+	if date is None:
+		seedAll()
+	else:
+		with freeze_time(datetime.datetime.strptime(date, "%Y-%m-%d")):
+			seedAll()
 
 if __name__ == '__main__':	
 	main()

@@ -19,24 +19,27 @@ python manage.py migrate
 
 # Usage
 ```
-python book.py
-Usage: book.py [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --help  Show this message and exit.
-
-Commands:
-  cat:filter
-  cat:last
-  cat:new
-  entry:last
-  lpo:add       Add a number of units of a categorized item to a local...
-  sch:last
-  sch:new
-  sch:push
-  stock:filter
-  stock:last
-  trx:last
+Usage: book.py [OPTIONS] COMMAND [ARGS]...                                  
+                                                                            
+Options:                                                                    
+  --help  Show this message and exit.                                       
+                                                                            
+Commands:                                                                   
+  cat:filter                                                                
+  cat:last                                                                  
+  cat:new                                                                   
+  entry:last                                                                
+  entry:rev     Reverse a transaction entry                                 
+  lpo:add       Add a number of units of a categorized item to a local...   
+  order:last                                                                
+  sale:add      Add to sales order                                          
+  sale:disc     Apply sales discount                                        
+  sch:last                                                                  
+  sch:new                                                                   
+  sch:push                                                                  
+  stock:filter                                                              
+  stock:last                                                                
+  trx:last                                                                  
 ```
 
 ### LICENSE

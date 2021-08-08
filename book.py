@@ -7,10 +7,6 @@ import tabulate
 import datetime
 import re
 
-# from freezegun import freeze_time
-# freezer = freeze_time("2012-01-14")
-# freezer.start()
-
 from django.core.serializers import serialize
 from django.db import DatabaseError, transaction
 
@@ -239,17 +235,11 @@ def sale_disc(trx_id:int, amount:int):
 	click.echo("To be implemented!")
 
 @main.command("sale:add")
-@click.option('--args', '-a', help="3 non-spaced comma separated values i.e sch_id,cat_id,units", required=True)
-def sale_add(args:str):
-	"""Description: Add to sales order"""
-	if not re.match('\d,\d,\d', args):
-		click.secho("Invalid list: requires integers only!", fg="red")
-
-	for arg in args.split(","):
-		if not arg.isnumeric():
-			click.secho("All list arguments must be integers!", fg="red")
-
-	sch_id, cat_id, units = args.split(",")
+def sale_add():
+	"""Add to sales order"""
+	sch_id = click.prompt('Schedule Id', type=int)
+	cat_id = click.prompt('Catalogue Id', type=int)
+	units = click.prompt('Number of Units', type=int)
  
 	try:
 		with transaction.atomic():
@@ -267,17 +257,31 @@ def sale_add(args:str):
 			else:
 				custOrder.save()
 
+			sch.amt = custOrder.getTotalPrice()
+			sch.save()
+
 		click.echo("Sales Order: Item added successfully.")
 	except Exception as e:
 		click.echo("Sales Order: Couldn't add item!")
 	except DatabaseError as e:
 		click.echo("Something went wrong!")
 
-# @main.command("test:test")
-# @freeze_time("1955-11-12")
-# def test():
-	# with freeze_time("1955-11-12"):
-	# print(datetime.now().strftime("%Y-%m-%d"))
+@main.command("order:last")
+@click.argument('offset', required=False, default=1)
+def order_last(offset):
+	rs = Order.objects.all().order_by("-id")[:offset]	
+	data = []
+	for row in rs:
+		data.append({
+
+			"id":row.id,
+			"trx_no":row.tno,
+			"catalogue":row.item.cat.name,
+			"status":row.status,
+			"created_at":row.created_at.strftime("%A %d. %B %Y")
+		})
+
+	click.echo(tabulate.tabulate(data, headers='keys'))
 
 if __name__ == '__main__':	
 	main()
