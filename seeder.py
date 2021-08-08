@@ -9,7 +9,15 @@ import datetime
 from django.core.serializers import serialize
 from django.db import DatabaseError, transaction
 from django.apps import apps
+
+warnings.filterwarnings("ignore")
+sys.path.insert(0, "../")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookkeep.settings')
+django.setup()
+
 from freezegun import freeze_time
+from books.controllers import period as periodCtr
+from books.models import *
 
 def seedAll():
 	for json_file in os.listdir("fixtures"):
@@ -35,14 +43,22 @@ def seedAll():
 
 @click.group()
 def main():
-	warnings.filterwarnings("ignore")
-	sys.path.insert(0, "../")
-	os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookkeep.settings')
-	django.setup()
+	pass
+
+@main.command("seed:period")
+@click.option('--start', '-s', help="yyyy-mm-dd", required=True)
+@click.option('--end', '-e', help="yyyy-mm-dd", required=True)
+def seed_period(start:str, end:str):
+	currPeriod = periodCtr.new(start, end)
+	if currPeriod is None:
+		click.secho("Couldn't created new period!", fg="red")
+	else:
+		click.echo("Successully created new period.")
+	
 
 @main.command("seed:all")
 @click.option('--date', '-d', help="yyyy-mm-dd")
-def all(date:str=None):
+def seed_all(date:str=None):
 	if date is None:
 		seedAll()
 	else:

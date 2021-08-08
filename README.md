@@ -16,9 +16,10 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-#DB Seeder
+# DB Seeder
 ```
 python seeder.py seed:all
+python seeder.py seed:period -s <start_date> -e <end_date>
 ```
 
 # Usage

@@ -3,7 +3,7 @@ from datetime import datetime
 
 class Period(models.Model):
 	pno = models.CharField(max_length=200)
-	start_date = models.DateTimeField(auto_now=True)
+	start_date = models.DateTimeField()
 	end_date = models.DateTimeField()
 
 class Coa(models.Model):
