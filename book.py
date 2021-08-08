@@ -67,7 +67,7 @@ def sch_push(id:int, descr:str, ttype:str):
 			elif ttype == "sale":
 				trxNo = acc.withTrxNo("SAL", sch.tno)
 				salesOrder = cust.Order.findByTrxNo(trxNo)
-				sale.invoice(salesOrder, descr)
+				trx = sale.invoice(salesOrder, descr)
 	except DatabaseError as e:
 		logger.error(e)
 
