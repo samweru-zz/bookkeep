@@ -1,7 +1,15 @@
 import datetime
+import random
 
 from django.db.models.query import QuerySet
 from books.models import Period
+
+# Get random date in period
+def getRandDate(currPeriod:Period):
+	diff = currPeriod.end_date - currPeriod.start_date
+	days = random.randrange(diff.days)
+	
+	return currPeriod.start_date + datetime.timedelta(days=days)
 
 def new(start:str, end:str):
 	try:

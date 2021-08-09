@@ -18,8 +18,8 @@ python manage.py migrate
 
 # DB Seeder
 ```
-python seeder.py seed:all
-python seeder.py seed:period -s <start_date> -e <end_date>
+python seeder.py db:all
+python seeder.py period:create
 ```
 
 # Usage
