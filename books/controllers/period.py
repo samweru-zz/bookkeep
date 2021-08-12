@@ -1,6 +1,7 @@
 import datetime
 import random
 
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from books.models import Period
 
@@ -8,7 +9,6 @@ from books.models import Period
 def getRandDate(currPeriod:Period):
 	diff = currPeriod.end_date - currPeriod.start_date
 	days = random.randrange(diff.days)
-	
 	return currPeriod.start_date + datetime.timedelta(days=days)
 
 def new(start:str, end:str):
@@ -35,5 +35,5 @@ def withQs(qs:QuerySet):
 	if currPeriod is not None:
 		start_date = currPeriod.start_date.strftime("%Y-%m-%d")
 		end_date = currPeriod.end_date.strftime("%Y-%m-%d")
-		return qs.filter(created_at___range=[start_date, end_date])
+		return qs.filter(Q(created_at__range=[start_date, end_date]))
 	return None

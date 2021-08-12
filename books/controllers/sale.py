@@ -12,8 +12,10 @@ logger = logging.getLogger(__name__)
 
 #invoice
 def invoice(order: SalesOrder, descr: str):
-	trx = None
-	trxNo = acc.getTrxNo("INV")
+	if order.trxNo is None:
+		raise("Order Trx No is empty!")
+
+	trxNo = order.trxNo
 	price = order.getTotalPrice()
 
 	try:
@@ -21,8 +23,6 @@ def invoice(order: SalesOrder, descr: str):
 			trx = Trx(tno=trxNo, qamt=price, bal=price, descr=descr)
 			trx.save()
 			acc.transfer(trxNo=trxNo, token="prepare.sale", amt=price).save()
-			# order.saveWithTrxNo(trxNo)
-			# order.save()
 	except DatabaseError as e:
 		logger.error(e)
 
