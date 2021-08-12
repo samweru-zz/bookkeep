@@ -9,8 +9,8 @@ warnings.filterwarnings("ignore")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'bookkeep.settings'
 django.setup()
 
-from books.tests.test_inventory import InventoryTestCase as InvTC
-from books.tests.test_purchase import PurchaseTestCase as PurTC
+from books.tests.inventory import InventoryTestCase as InvTC
+from books.tests.purchase import PurchaseTestCase as PurTC
 
 def suite():
 	suite = unittest.TestSuite()

@@ -6,7 +6,7 @@ double-entry bookkeeping. It is created in django python sqlite3 and works on co
 
 
 # Install
-```python
+```
 pip install -r requirements.txt
 ```
 
@@ -16,10 +16,15 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-# DB Seeder
+## Seeder
 ```
-python seeder.py db:all
 python seeder.py period:create
+python seeder.py db:all
+```
+
+# Tests
+```
+python runtests.py
 ```
 
 # Usage
