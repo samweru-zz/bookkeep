@@ -1,10 +1,12 @@
 from books.controllers import sale
 from books.models import *
+from django.test import TestCase
 
 import unittest
 # import pytest
 
-class TrxTestCase(unittest.TestCase):
+class TrxTestCase(TestCase):
+# class TrxTestCase(unittest.TestCase):
 	def setUp(self):
 		pass
 		# self.trxNo = None

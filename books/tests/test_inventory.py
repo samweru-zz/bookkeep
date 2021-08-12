@@ -1,6 +1,7 @@
 from books.models import *
 from freezegun import freeze_time
 from django.test import TransactionTestCase
+from django.test import TestCase
 
 from books.controllers.customer import  Order as SaleOrder
 from books.controllers import accountant as acc
@@ -10,14 +11,12 @@ import moment
 import json
 import unittest
 
-# class InventoryTestCase(TransactionTestCase):
-class InventoryTestCase(unittest.TestCase):
+# class InventoryTestCase(unittest.TestCase):
+class InventoryTestCase(TestCase):
 	def setUp(self):
 		self.trxNo = acc.getTrxNo("INV")
 
 	def test_so(self):
-		# print(TrxType.objects.all())
-
 		c1 = Catalogue(name="Paper Punch", price=2500)
 		c2 = Catalogue(name="Staplers", price=1000)
 		c1.save()

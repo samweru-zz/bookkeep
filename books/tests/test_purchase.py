@@ -1,5 +1,6 @@
 from books.models import *
 from freezegun import freeze_time
+from django.test import TestCase
 
 from books.controllers.inventory import  Requisition as InvReq
 from books.controllers import accountant as acc
@@ -9,7 +10,8 @@ import moment
 import json
 import unittest
 
-class PurchaseTestCase(unittest.TestCase):
+class PurchaseTestCase(TestCase):
+# class PurchaseTestCase(unittest.TestCase):
 	def setUp(self):
 		self.trxNo = acc.getTrxNo("INV")
 
