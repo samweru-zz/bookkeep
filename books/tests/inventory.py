@@ -13,6 +13,7 @@ import unittest
 
 # class InventoryTestCase(unittest.TestCase):
 class InventoryTestCase(TestCase):
+	# databases = {'default'}
 	def setUp(self):
 		self.trxNo = acc.getTrxNo("INV")
 

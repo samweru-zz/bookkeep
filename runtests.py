@@ -4,9 +4,13 @@ import os
 import unittest
 import django
 import warnings
+from django.conf import settings
 
 warnings.filterwarnings("ignore")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'bookkeep.settings'
+
+# databases = settings.DATABASES
+
 django.setup()
 
 from books.tests.inventory import InventoryTestCase as InvTC
