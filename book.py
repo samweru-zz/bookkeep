@@ -25,7 +25,6 @@ from books.controllers.inventory import Requisition as InvReq
 from books.controllers import period
 
 @click.group()
-# @freeze_time("1955-11-12")
 def main():
     pass
 
@@ -55,24 +54,26 @@ def sch_last(offset):
 @click.option("--descr", default="N/A")
 def sch_push(id:int, descr:str, ttype:str):
 	try:
-		with transaction.atomic():
-			sch = Schedule.objects.get(id=id)
-			sch.status="Final"
-			sch.save()
+		sch = Schedule.objects.get(id=id)
+		if sch.status != "Final":
+			with transaction.atomic():
+				sch.status="Final"
+				sch.save()
 
-			trxNo = sch.tno
-			if ttype == "lpo":
-				trxNo = acc.withTrxNo("PUR", sch.tno)
-				req = InvReq.findByTrxNo(trxNo)
-				trx = pur.order(req, descr)
-			elif ttype == "sale":
-				trxNo = acc.withTrxNo("SAL", sch.tno)
-				salesOrder = cust.Order.findByTrxNo(trxNo)
-				trx = sale.invoice(salesOrder, descr)
+				trxNo = sch.tno
+				if ttype == "lpo":
+					trxNo = acc.withTrxNo("PUR", sch.tno)
+					req = InvReq.findByTrxNo(trxNo)
+					trx = pur.order(req, descr)
+				elif ttype == "sale":
+					trxNo = acc.withTrxNo("SAL", sch.tno)
+					salesOrder = cust.Order.findByTrxNo(trxNo)
+					trx = sale.invoice(salesOrder, descr)
+			click.echo("Schedule pushed successfully.")
+		else:
+			click.echo("Schedule already pushed!")
 	except DatabaseError as e:
-		logger.error(e)
-
-	click.echo("Schedule | Trx No.: %s created successfully!" % trx.tno)
+		click.secho(e, fg="red")
 
 @main.command("trx:last")
 @click.argument('offset', required=False, default=1)
@@ -85,7 +86,6 @@ def trx_last(offset):
 @click.argument('name')
 @click.argument('price')
 @click.argument('descr', required=False, default="N/A")
-# @freeze_time("1955-11-12")
 def cat_new(name:str, price:float, descr:str):
 	cat = Catalogue(name=name, price=price, descr=descr, status="Active")
 	cat.save()
@@ -114,7 +114,9 @@ def cat_filter(name):
 @click.argument('units')
 @click.argument('unit_cost')
 def lpo_add(sch_id:int, cat_id:int, units:int, unit_cost:float):
-	"""Add a number of units of a categorized item to a local purchase order"""
+	"""
+	Add a number of units of a categorized item to a local purchase order
+	"""
 	try:
 		with transaction.atomic():
 			sch = Schedule.objects.get(id=sch_id)
@@ -129,15 +131,41 @@ def lpo_add(sch_id:int, cat_id:int, units:int, unit_cost:float):
 			order = Stock(tno=ptrxNo, 
 		 				cat=cat, 
 						code=code, 
+						unit_bal=units,
 						unit_total=units, 
 						unit_cost=unit_cost, 
 						status="Order:Pending")
 			order.save()
+		click.echo("Batch Code: %s" % code)
 	except Exception as e:
 		click.echo("Purcase Order: Couldn't add item!")
 	except DatabaseError as e:
 		click.echo("Something went wrong!")
 
+@main.command("lpo:pay")
+@click.argument('trx_id')
+@click.argument('amt', required=False)
+def lpo_pay(trx_id:int, amt:float=None):
+	try:
+		with transaction.atomic():
+			trx = Trx.objects.get(id=trx_id)
+			if trx.status != "Final":
+				if amt is None:
+					amt = trx.bal
+
+				if pur.pay(trxNo=trx.tno, amt=amt):
+					stocks = Stock.objects.filter(tno=trx.tno)
+					for stock in stocks:
+						stock.status = "Pending"
+						stock.save()
+
+					click.echo("Purchase payment successful!")
+				else:
+					click.secho("Purchase payment failed!", fg="red")
+			else:
+				click.echo("Trx already finalized!")
+	except DatabaseError as e:
+		click.secho(e, fg="red")
 
 @main.command("stock:filter")
 @click.argument('name')
@@ -230,17 +258,35 @@ def entry_last(offset):
 
 @main.command("sale:disc")
 @click.argument('trx_id')
-@click.argument('amount')
-def sale_disc(trx_id:int, amount:int):
-	"""Apply sales discount"""
+@click.argument('amt')
+def sale_discount(trx_id:int, amt:int):
+	"""
+	Apply sales discount
+	"""
 	click.echo("To be implemented!")
+
+@main.command("sale:rec")
+@click.argument('trx_id')
+@click.argument('amt', required=False)
+def sale_receipt(trx_id:int, amt:int=None):
+	trx = Trx.objects.get(id=id)
+	if trx.status != "Final":
+		if sale.receipt(trxNo=trx.tno, amt=amt):
+			click.echo("Sales transaction successfully saved.")
+		else:
+			click.echo("Sales transaction failed!")
+	else:
+		click.echo("Transaction already finalized!")
 
 @main.command("sale:add")
 def sale_add():
-	"""Add to sales order"""
+	"""
+	Add to sales order.
+	Takes Schedule.Id, Catalogue.Id and Units
+	"""
 	sch_id = click.prompt('Schedule Id', type=int)
 	cat_id = click.prompt('Catalogue Id', type=int)
-	units = click.prompt('Number of Units', type=int)
+	units = click.prompt('Units', type=int)
  
 	try:
 		with transaction.atomic():
@@ -261,11 +307,31 @@ def sale_add():
 			sch.amt = custOrder.getTotalPrice()
 			sch.save()
 
-		click.echo("Sales Order: Item added successfully.")
+			click.echo("Sales Order: Item added successfully.")
 	except Exception as e:
-		click.echo("Sales Order: Couldn't add item!")
+		click.echo(e)
 	except DatabaseError as e:
 		click.echo("Something went wrong!")
+
+@main.command("period:last")
+@click.argument('offset', required=False, default=1)
+def period_last(offset):
+	"""
+	Last period should be the active period
+	otherwise someone may be viewing records from 
+		another period
+	"""
+	rs = Period.objects.all().order_by("-id")[:offset]	
+	data = []
+	for row in rs:
+		data.append({
+
+			"id":row.id,
+			"start":row.start_date.strftime("%A %d. %B %Y"),
+			"end":row.end_date.strftime("%A %d. %B %Y")
+		})
+
+	click.echo(tabulate.tabulate(data, headers='keys'))
 
 @main.command("order:last")
 @click.argument('offset', required=False, default=1)

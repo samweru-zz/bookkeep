@@ -104,7 +104,8 @@ def period_create(start:str=None, end:str=None):
 	If not defined will default to today till end year
 	"""
 	if start is None:
-		start = moment.now().add(days=1).format("YYYY-MM-DD")
+		start = moment.now().format("YYYY-MM-DD")
+		# start = moment.now().add(days=1).format("YYYY-MM-DD")
 
 	if end is None:
 		end = moment.date("31 dec").format("YYYY-MM-DD")
@@ -117,17 +118,31 @@ def period_create(start:str=None, end:str=None):
 	
 @main.command("db:all")
 def db_all():
-	currPeriod = periodCtr.getCurrent()
-	if currPeriod is None:
-		click.secho("Period must be set first!", fg="red")
-	else:
-		seedAll()
+	try:
+		currPeriod = periodCtr.getCurrent()
+		if currPeriod is not None:
+			seedAll()
+
+			click.echo("Database seeded successfully!")
+		else:
+			click.secho("Period must be set first!", fg="red")
+	except Exception as e:
+		click.secho(e, fg="red")
 
 @main.command("db:base")
 def db_base():
-	for file in getFileBaseLs():
-		rand_date = periodCtr.getRandDate(Period.objects.last())
-		seedWithJson(json.load(open("fixtures/%s.json" % file)), rand_date)
+	try:
+		currPeriod = periodCtr.getCurrent()
+		if currPeriod is not None:
+			for file in getFileBaseLs():
+				rand_date = periodCtr.getRandDate(Period.objects.last())
+				seedWithJson(json.load(open("fixtures/%s.json" % file)), rand_date)
+
+			click.echo("Database foundation seeded successfully!")
+		else:
+			click.secho("Period must be set first!", fg="red")
+	except Exception as e:
+		click.secho(e, fg="red")
 
 # @main.command("drop:data")
 # def drop_data():

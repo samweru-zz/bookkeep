@@ -2,9 +2,9 @@ from django.db import models
 from datetime import datetime
 
 class Period(models.Model):
-	pno = models.CharField(max_length=200)
 	start_date = models.DateTimeField()
 	end_date = models.DateTimeField()
+	status = models.CharField(max_length=200, default="Active")
 
 class Coa(models.Model):
 	name = models.CharField(max_length=200)

@@ -26,7 +26,7 @@ def order(req: InvReq, descr:str):
 #payment receipt
 def pay(trxNo: str, amt: float=None):
 	trx = Trx.objects.get(tno=trxNo)
-	bal, status = acc.getBalStatus(amt, trx)
+	bal, status = acc.getBalStatus(float(amt), trx)
 
 	ptrxNo = acc.withTrxNo("PAY", trxNo)
 

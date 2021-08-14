@@ -11,7 +11,7 @@ def getTrxNo(prefix):
 def withTrxNo(prefix, trxNo):
 	return prefix + trxNo[3:]
 
-def getBalStatus(amt, trx: Trx):
+def getBalStatus(amt:float, trx: Trx):
 	if(amt is None):
 		amt = trx.qamt
 
