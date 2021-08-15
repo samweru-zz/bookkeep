@@ -18,7 +18,7 @@ python manage.py migrate
 
 ## Seeder
 
-You'll be required to seed the database with a period. Use command `period:create` without arguments
+You'll be required to seed the database with a period, use command `period:create` without arguments
 to create a default period or define one. You can use the command `db:base` to seed the database
 without transactions or command `db:all` to seed with ready transactions.
 
@@ -71,10 +71,10 @@ Commands:
 
 ## Contribution
 
-This project purposely leave out the implementation of the accounting formula 
-Asset = Liabilities + Capital and Income = Revenue - Expenses because it is mainly a proof of 
-concept that build up below that threshold. Please feel free to fork and implement this tiny 
-remaining area.
+This project purposely leaves out the implementation of the accounting formula 
+**Asset = Liabilities + Capital** and **Income = Revenue - Expenses** because it is mainly a proof of concept, it builds up and leaves off just exactly below that threshold. 
+This area is where you generate financial statements and summaries. Please feel free to fork 
+and implement this tiny remaining area.
 
 ### LICENSE
 
