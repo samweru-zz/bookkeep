@@ -17,9 +17,23 @@ python manage.py migrate
 ```
 
 ## Seeder
+
+You'll be required to seed the database with a period. Use command `period:create` without arguments
+to create a default period or define one. You can use the command `db:base` to seed the database
+without transactions or command `db:all` to seed with ready transactions.
+
 ```
-python seeder.py period:create
-python seeder.py db:all
+Usage: seed.py [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  db:all
+  db:base
+  period:create   Define period start and end date.
+  purchase:order
+  sales:order
 ```
 
 # Tests
@@ -29,28 +43,38 @@ python runtests.py
 
 # Usage
 ```
-Usage: book.py [OPTIONS] COMMAND [ARGS]...                                  
-                                                                            
-Options:                                                                    
-  --help  Show this message and exit.                                       
-                                                                            
-Commands:                                                                   
-  cat:filter                                                                
-  cat:last                                                                  
-  cat:new                                                                   
-  entry:last                                                                
-  entry:rev     Reverse a transaction entry                                 
-  lpo:add       Add a number of units of a categorized item to a local...   
-  order:last                                                                
-  sale:add      Add to sales order                                          
-  sale:disc     Apply sales discount                                        
-  sch:last                                                                  
-  sch:new                                                                   
-  sch:push                                                                  
-  stock:filter                                                              
-  stock:last                                                                
-  trx:last                                                                  
+Usage: book.py [OPTIONS] COMMAND [ARGS]...                                        
+                                                                                  
+Options:                                                                          
+  --help  Show this message and exit.                                             
+                                                                                  
+Commands:                                                                         
+  cat:filter                                                                      
+  cat:last                                                                        
+  cat:new                                                                         
+  entry:last                                                                      
+  entry:rev     Reverse a transaction entry                                       
+  lpo:add       Add a number of units of a categorized item to a local...         
+  lpo:pay                                                                         
+  order:last                                                                      
+  period:last   Last period should be the active period otherwise someone...      
+  sale:add      Add to sales order.                                               
+  sale:disc     Apply sales discount                                              
+  sale:rec                                                                        
+  sch:last                                                                        
+  sch:new                                                                         
+  sch:push                                                                        
+  stock:filter                                                                    
+  stock:last                                                                      
+  trx:last                                                                                           
 ```
+
+## Contribution
+
+This project purposely leave out the implementation of the accounting formula 
+Asset = Liabilities + Capital and Income = Revenue - Expenses because it is mainly a proof of 
+concept that build up below that threshold. Please feel free to fork and implement this tiny 
+remaining area.
 
 ### LICENSE
 
