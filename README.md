@@ -4,13 +4,30 @@ Django Bookkeep (Inventory)
 This is a bookkeeping (proof-of-concept) project for inventory and retail systems that demonstarted 
 double-entry bookkeeping. It is created in django python sqlite3 and works on commandline only.
 
+# Explanation
+
+How this concept works is that there is an interfacing of sales and purchase transaction 
+of inventory and retail to bookkeeping functionality. How this is implemented is that a schedule  
+of prepared transactions is kept until the user is satisfied to push `sch:push` those
+transactions into accounting. Prior to this push one must create a schedule `sch:new` in which one
+may add items they hope to purchase `lpo:add` or items that are being sold `sale:add` sales.
+
+Once preferred scheduled transaction is pushed, the transaction can be viewed via `trx:last`
+command. The details of bookkeeping can be viewed via the `entry:last` command. To record payments
+for purchases the command `lpo:pay` and to record sales receipts the `sale:rec` command.
+
+It is important to note that a period must be defined first `period:create` via the `seed.py`
+utility. Defining a new period will deactivate any perious periods and those transaction will
+no longer be visible.
 
 # Install
+
 ```
 pip install -r requirements.txt
 ```
 
 # Setup
+
 ```
 python manage.py makemigrations
 python manage.py migrate
@@ -29,44 +46,46 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  db:all
-  db:base
+  db:all          Seed database with sample transactions
+  db:base         Seed database without sample transactions
   period:create   Define period start and end date.
-  purchase:order
-  sales:order
+  purchase:order  Seed database with sample purchase order transactions
+  sales:order     Seed database with sample sales order transactions
 ```
 
 # Tests
+
 ```
 python runtests.py
 ```
 
 # Usage
+
 ```
-Usage: book.py [OPTIONS] COMMAND [ARGS]...                                        
-                                                                                  
-Options:                                                                          
-  --help  Show this message and exit.                                             
-                                                                                  
-Commands:                                                                         
-  cat:filter                                                                      
-  cat:last                                                                        
-  cat:new                                                                         
-  entry:last                                                                      
-  entry:rev     Reverse a transaction entry                                       
-  lpo:add       Add a number of units of a categorized item to a local...         
-  lpo:pay                                                                         
-  order:last                                                                      
-  period:last   Last period should be the active period otherwise someone...      
-  sale:add      Add to sales order.                                               
-  sale:disc     Apply sales discount                                              
-  sale:rec                                                                        
-  sch:last                                                                        
-  sch:new                                                                         
-  sch:push                                                                        
-  stock:filter                                                                    
-  stock:last                                                                      
-  trx:last                                                                                           
+Usage: book.py [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  cat:filter    Catalogue filter items
+  cat:last      View X number of last catalogues
+  cat:new       Create new catalogue item
+  entry:last    View X number of last transaction entries
+  entry:rev     Reverse a transaction entry
+  lpo:add       Add a number of units of a categorized item to a local...
+  lpo:pay       Make payment for purchase order
+  order:last    View X number of last order items
+  period:last   Last period should be the active period otherwise someone...
+  sale:add      Add to sales order.
+  sale:disc     Apply sales discount
+  sale:rec      Receive payment for sales order
+  sch:last      View X number of last schedules
+  sch:new       Create new schedule
+  sch:push      Push schedule into transaction
+  stock:filter  Filter stock items
+  stock:last    View X number of stock items
+  trx:last      View X number of last transactions                                                                                          
 ```
 
 ## Contribution

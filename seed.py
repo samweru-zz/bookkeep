@@ -129,6 +129,9 @@ def period_create(ignore:bool, start:str=None, end:str=None):
 	
 @main.command("db:all")
 def db_all():
+	"""
+	Seed database with sample transactions
+	"""
 	try:
 		currPeriod = periodCtr.getCurrent()
 		if currPeriod is not None:
@@ -142,6 +145,9 @@ def db_all():
 
 @main.command("db:base")
 def db_base():
+	"""
+	Seed database without sample transactions
+	"""
 	try:
 		currPeriod = periodCtr.getCurrent()
 		if currPeriod is not None:
@@ -158,6 +164,9 @@ def db_base():
 @main.command("sales:order")
 @freeze_time(today.strftime("%Y-%m-%d %H:%M:%S"))
 def sales_order():
+	"""
+	Seed database with sample sales order transactions
+	"""
 	currPeriod = periodCtr.getCurrent()
 	if currPeriod is None:
 		click.secho("Period must be set first!", fg="red")
@@ -171,6 +180,9 @@ def sales_order():
 @main.command("purchase:order")
 @freeze_time(today.strftime("%Y-%m-%d %H:%M:%S"))
 def purchase_order():
+	"""
+	Seed database with sample purchase order transactions
+	"""
 	currPeriod = periodCtr.getCurrent()
 	if currPeriod is None:
 		click.secho("Period must be set first!", fg="red")
@@ -184,6 +196,9 @@ def purchase_order():
 @main.command("test:freeze")
 @freeze_time(moment.date("2 years ago").format("YYYY-MM-DD"))
 def test_freeze():
+	"""
+	test package freeze.gun
+	"""
 	print(datetime.datetime.now().strftime("%Y-%m-%d"))
 
 if __name__ == '__main__':	
