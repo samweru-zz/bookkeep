@@ -4,22 +4,6 @@ Django Bookkeep (Inventory)
 This is a bookkeeping (proof-of-concept) project for inventory and retail systems that demonstarted 
 double-entry bookkeeping. It is created in django python sqlite3 and works on commandline only.
 
-# Explanation
-
-How this concept works is that there is an interfacing of sales and purchase transaction 
-of inventory and retail to bookkeeping functionality. How this is implemented is that a schedule  
-of prepared transactions is kept until the user is satisfied to push `sch:push` those
-transactions into accounting. Prior to this push one must create a schedule `sch:new` in which one
-may add items they hope to purchase `lpo:add` or items that are being sold `sale:add` sales.
-
-Once preferred scheduled transaction is pushed, the transaction can be viewed via `trx:last`
-command. The details of bookkeeping can be viewed via the `entry:last` command. To record payments
-for purchases the command `lpo:pay` and to record sales receipts the `sale:rec` command.
-
-It is important to note that a period must be defined first `period:create` via the `seed.py`
-utility. Defining a new period will deactivate any perious periods and those transaction will
-no longer be visible.
-
 # Install
 
 ```
@@ -53,13 +37,34 @@ Commands:
   sales:order     Seed database with sample sales order transactions
 ```
 
-# Tests
+## Tests
 
 ```
 python runtests.py
 ```
 
 # Usage
+
+```
+python book.py
+```
+
+## Explanation
+
+This concept works by interfacing sales and purchase transaction of inventory and retail 
+to bookkeeping functionality. It is implemented by scheduling transactions before submitting  
+them to accounting. Transactions are shceduled pending until the user is satisfied to push 
+`sch:push` them to accounting. Prior to this push, one must create a schedule `sch:new` in 
+which one may add items they hope to purchase `lpo:add` or items that are being sold 
+`sale:add` sales.
+
+Once preferred scheduled transaction is pushed, the transaction can be viewed via `trx:last`
+command. The details of bookkeeping can be viewed via the `entry:last` command. To record payments
+for purchases command `lpo:pay` and to record sales receipts command `sale:rec` are used.
+
+It is important to note that a period must be defined first `period:create` via the `seed.py`
+utility. Defining a new period will deactivate any perious periods and those transaction will
+no longer be visible.
 
 ```
 Usage: book.py [OPTIONS] COMMAND [ARGS]...
