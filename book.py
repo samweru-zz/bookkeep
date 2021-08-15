@@ -22,7 +22,7 @@ from books.controllers import purchase as pur
 from books.controllers import customer as cust
 from books.controllers import sale
 from books.controllers.inventory import Requisition as InvReq
-from books.controllers import period
+from books.controllers import period as periodCtr
 
 @click.group()
 def main():
@@ -40,7 +40,8 @@ def sch_new(descr:str, amt:float):
 @main.command("sch:last")
 @click.argument('offset', required=False, default=1)
 def sch_last(offset):
-	rs = Schedule.objects.all().order_by("-id")[:offset]
+	rs = periodCtr.withQs(Schedule.objects.all().order_by("-id"))
+	rs = rs[:offset]
 	if rs.count()>0:
 		data = helper.to_rslist(rs)
 		click.echo(tabulate.tabulate(data, headers='keys'))
@@ -78,8 +79,8 @@ def sch_push(id:int, descr:str, ttype:str):
 @main.command("trx:last")
 @click.argument('offset', required=False, default=1)
 def trx_last(offset):
-	rs = Trx.objects.all().order_by("-id")[:offset]	
-	data = helper.to_rslist(rs)
+	rs = periodCtr.withQs(Trx.objects.all().order_by("-id"))
+	data = helper.to_rslist(rs[:offset])
 	click.echo(tabulate.tabulate(data, headers='keys'))
 
 @main.command("cat:new")
@@ -242,9 +243,9 @@ def entry_rev(id:int, amt:float):
 @main.command("entry:last")
 @click.argument('offset', required=False, default=1)
 def entry_last(offset):
-	rs = Ledger.objects.all().order_by("-id")[:offset]	
+	rs = periodCtr.withQs(Ledger.objects.all().order_by("-id"))
 	data = []
-	for row in rs:
+	for row in rs[:offset]:
 		data.append({
 
 			"id":row.id,
@@ -328,17 +329,21 @@ def period_last(offset):
 
 			"id":row.id,
 			"start":row.start_date.strftime("%A %d. %B %Y"),
-			"end":row.end_date.strftime("%A %d. %B %Y")
+			"end":row.end_date.strftime("%A %d. %B %Y"),
+			"status": row.status
 		})
 
-	click.echo(tabulate.tabulate(data, headers='keys'))
+	if len(data) == 0:
+		click.secho("There are no periods!", fg="red")
+	else:
+		click.echo(tabulate.tabulate(data, headers='keys'))
 
 @main.command("order:last")
 @click.argument('offset', required=False, default=1)
 def order_last(offset):
-	rs = Order.objects.all().order_by("-id")[:offset]	
+	rs = periodCtr.withQs(Order.objects.all().order_by("-id"))
 	data = []
-	for row in rs:
+	for row in rs[:offset]:
 		data.append({
 
 			"id":row.id,

@@ -2,7 +2,9 @@ from books.models import *
 
 from django.utils.crypto import get_random_string
 
+
 import random, string
+import datetime
 
 def getTrxNo(prefix):
 	random = get_random_string().upper()
@@ -26,21 +28,40 @@ def getBalStatus(amt:float, trx: Trx):
 
 	return bal, status
 
-def transfer(trxNo: str, token: str, amt: float):
+def newTrx(trxNo:str, amt:float, descr:str, created_at:datetime.datetime=None):
+	trx = Trx(tno=trxNo, qamt=amt, bal=amt, descr=descr)
+	
+	if created_at is not None:
+		trx.created_at = created_at
+
+	return trx
+	 
+
+def newEntry(trxNo:str, token:str, amt:float, created_at:datetime.datetime=None):
 	trxType = TrxType.objects.get(token=token)
 
 	debit = Coa.objects.get(alias=trxType.dr.alias)
 	credit = Coa.objects.get(alias=trxType.cr.alias)
 
-	return Ledger(tno=trxNo, dr=debit, cr=credit, amt=amt)
+	entry = Ledger(tno=trxNo, dr=debit, cr=credit, amt=amt)
 
-def reverse(entry: Ledger, amt: float):
+	if created_at is not None:
+		entry.created_at = created_at	
+
+	return entry
+
+def revEntry(entry: Ledger, amt: float, created_at:datetime.datetime=None):
 	credit = Coa.objects.get(id=entry.cr.id)
 	debit = Coa.objects.get(id=entry.dr.id)
 
 	trxNo = withTrxNo("REV", entry.tno)
 
-	return Ledger(tno=trxNo, dr=credit, cr=debit, amt=amt)
+	entry = Ledger(tno=trxNo, dr=credit, cr=debit, amt=amt)
+
+	if created_at is not None:
+		entry.created_at = created_at
+
+	return entry
 
 def getCode(length:int=8):
  	return ''.join(random.choices(string.ascii_letters + string.digits, k=length)).upper()

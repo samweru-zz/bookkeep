@@ -7,6 +7,7 @@ from django.db import DatabaseError, transaction
 
 import random
 import logging
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -18,25 +19,31 @@ def getCatalogue():
 
 	cat = Catalogue(name=random.choice(items), price=random.randint(1500, 3500))
 	cat.save()
+
 	return cat
 
-def getInvReq(cat_count:int):
+def getInvReq(cat_count:int, created_at:datetime.datetime=None):
 	req = InvReq(None)
 	for i in range(cat_count):
 		cat = getCatalogue()
 		req.add(cat=cat, units=random.randint(25,55), unit_cost=random.randint(750, 1450))
-	req.saveWithTrxNo(acc.getTrxNo("PUR"))
+
+	req.saveWithTrxNo(trxNo=acc.getTrxNo("PUR"), created_at=created_at)
+
 	return req
 
-def getPurchaseOrder(cat_count:int):
+def newPurchase(cat_count:int, created_at:datetime.datetime=None):
 	try:
 		with transaction.atomic():
-			req = getInvReq(cat_count=cat_count)
-			trx = pur.order(req=req, descr="Purchase Order: PUR%s" % acc.getCode())
-			pur.pay(trxNo=trx.tno, amt=req.getTotalCost())
+			req = getInvReq(cat_count=cat_count, created_at=created_at)
+			trx = pur.order(req=req, 
+							descr="Purchase Order: PUR%s" % acc.getCode(), 
+							created_at=created_at)
+
+			pur.pay(trxNo=trx.tno, 
+						amt=req.getTotalCost(), 
+						created_at=created_at)
 
 			return True
 	except DatabaseError as e:
 		logger.error(e)
-
-		return False

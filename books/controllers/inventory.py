@@ -4,6 +4,7 @@ from books.controllers import accountant as acc
 from django.db import DatabaseError, transaction
 
 import logging
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class Requisition:
 		return tt_cost
 
 
-	def saveWithTrxNo(self, trxNo:str):
+	def saveWithTrxNo(self, trxNo:str, created_at:datetime.datetime=None):
 		try:
 			if trxNo is not None:
 				with transaction.atomic():
@@ -65,6 +66,9 @@ class Requisition:
 										unit_total=item.get("units"), 
 										unit_cost=item.get("unit_cost"))
 
+						if created_at is not None:
+							stock.created_at = created_at
+							
 						"""
 						If there are no other active stock batches, make current
 						stock batch active

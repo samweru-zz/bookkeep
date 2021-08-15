@@ -16,7 +16,7 @@ def getRandDate(currPeriod:Period):
 	days = random.randrange(diff.days)
 	return currPeriod.start_date + datetime.timedelta(days=days)
 
-def new(start:str, end:str):
+def new(start:str, end:str, ignoreToday:bool=False):
 	try:
 		with transaction.atomic():
 			start_date = datetime.datetime.strptime(start, "%Y-%m-%d")
@@ -29,7 +29,13 @@ def new(start:str, end:str):
 				period.status = "Closed"
 				period.save()
 
-			if start_date >= today and end_date > start_date:
+			if ignoreToday == False:
+				if start_date >= today:
+					pass
+				else:
+					raise Exception("Start date can be today onwards only!")
+			
+			if end_date > start_date:
 				period=Period(start_date=start_date, end_date=end_date)
 				period.save()
 

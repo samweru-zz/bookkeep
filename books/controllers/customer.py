@@ -5,6 +5,7 @@ from books.controllers import inventory as inv
 from django.db import DatabaseError, transaction
 
 import logging
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class Order:
 	def isEmpty(self):
 		return not len(self.catList)>0
 
-	def saveWithTrxNo(self, trxNo:str):
+	def saveWithTrxNo(self, trxNo:str, created_at:datetime.datetime=None):
 		try:
 			with transaction.atomic():
 				if self.trxNo is None:
@@ -48,6 +49,10 @@ class Order:
 						order = ItemOrder(tno=trxNo, 
 											item=stock_item, 
 											units=item.get("units"))
+
+						if created_at is not None:
+							order.created_at=created_at
+							
 						order.save()
 						
 					return True
@@ -57,7 +62,7 @@ class Order:
 
 			return False
 
-	def save(self):
+	def save(self, created_at:datetime.datetime=None):
 		try:
 			with transaction.atomic():
 				if self.trxNo is not None:
@@ -67,6 +72,10 @@ class Order:
 							order = ItemOrder(tno=self.trxNo, 
 												item=stock_item, 
 												units=item.get("units"))
+
+							if created_at is not None:
+								order.created_at=created_at
+
 							order.save()
 						
 					return True

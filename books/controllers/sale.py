@@ -7,11 +7,12 @@ from books.controllers.customer import Order as SalesOrder
 from django.db import DatabaseError, transaction
 
 import logging
+import datetime
 
 logger = logging.getLogger(__name__)
 
 #invoice
-def invoice(order: SalesOrder, descr: str):
+def invoice(order: SalesOrder, descr: str, created_at:datetime.datetime=None):
 	if order.trxNo is None:
 		raise("Order Trx No is empty!")
 
@@ -20,16 +21,19 @@ def invoice(order: SalesOrder, descr: str):
 
 	try:
 		with transaction.atomic():
-			trx = Trx(tno=trxNo, qamt=price, bal=price, descr=descr)
+			trx = acc.newTrx(trxNo=trxNo, amt=price, descr=descr, created_at=created_at)
 			trx.save()
-			acc.transfer(trxNo=trxNo, token="prepare.sale", amt=price).save()
+			acc.newEntry(trxNo=trxNo, 
+							token="prepare.sale", 
+							amt=price, 
+							created_at=created_at).save()
+
+			return trx
 	except DatabaseError as e:
 		logger.error(e)
 
-	return trx
-
 #sales receipt
-def receipt(trxNo: str, amt: float=None):
+def receipt(trxNo:str, amt:float=None, created_at:datetime.datetime=None):
 	trx = Trx.objects.get(tno=trxNo)
 	bal, status = acc.getBalStatus(amt, trx)
 	tax = getSaleTax(amt=amt)
@@ -46,9 +50,9 @@ def receipt(trxNo: str, amt: float=None):
 				trx.status = status
 				trx.save()
 
-				acc.transfer(trxNo=rtrxNo, token="apply.sale", amt=amt).save()
-				acc.transfer(trxNo=rtrxNo, token="apply.sale.tax", amt=tax).save()
-				acc.transfer(trxNo=rtrxNo, token="apply.cogs", amt=cogs).save()
+				acc.newEntry(trxNo=rtrxNo, token="apply.sale", amt=amt, created_at=created_at).save()
+				acc.newEntry(trxNo=rtrxNo, token="apply.sale.tax", amt=tax, created_at=created_at).save()
+				acc.newEntry(trxNo=rtrxNo, token="apply.cogs", amt=cogs, created_at=created_at).save()
 
 				return True
 		return False

@@ -6,6 +6,7 @@ import warnings
 import json
 import logging
 
+from freezegun import freeze_time
 from django.core.serializers import serialize
 from django.db import DatabaseError, transaction
 from django.db import connections as conn
@@ -16,12 +17,18 @@ sys.path.insert(0, "../")
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookkeep.settings')
 django.setup()
 
-# from freezegun import freeze_time
-from books.controllers import period as periodCtr
 from books.models import *
+from books.controllers import period as periodCtr
+from books.seeders import sales_order as so
+from books.seeders import purchase_order as po
 
 import datetime
 import moment
+
+today = datetime.datetime.now()
+currPeriod = periodCtr.getCurrent()
+if currPeriod is not None:
+	today = periodCtr.getRandDate(currPeriod)
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +105,11 @@ def main():
 @main.command("period:create")
 @click.option('--start', '-s', help="yyyy-mm-dd")
 @click.option('--end', '-e', help="yyyy-mm-dd")
-def period_create(start:str=None, end:str=None):
+@click.option('--ignore', '-i',
+				is_flag=True,
+				default=False,
+				help="Creating a fake period by ignoring validation")
+def period_create(ignore:bool, start:str=None, end:str=None):
 	"""
 	Define period start and end date. 
 	If not defined will default to today till end year
@@ -110,7 +121,7 @@ def period_create(start:str=None, end:str=None):
 	if end is None:
 		end = moment.date("31 dec").format("YYYY-MM-DD")
 
-	currPeriod = periodCtr.new(start, end)
+	currPeriod = periodCtr.new(start, end, ignoreToday=ignore)
 	if currPeriod is None:
 		click.secho("Couldn't create new period!", fg="red")
 	else:
@@ -144,25 +155,36 @@ def db_base():
 	except Exception as e:
 		click.secho(e, fg="red")
 
-# @main.command("drop:data")
-# def drop_data():
-# 	with conn["default"].cursor() as cursor:
-# 		for model in getModelLs():
-# 			sql = "DELETE FROM books_%s" % model.lower()
-# 			print(sql)
-# 			cursor.execute(sql)		
-# 	conn["default"].close()
+@main.command("sales:order")
+@freeze_time(today.strftime("%Y-%m-%d %H:%M:%S"))
+def sales_order():
+	currPeriod = periodCtr.getCurrent()
+	if currPeriod is None:
+		click.secho("Period must be set first!", fg="red")
+		exit()
 
-# @main.command("drop:data")
-# def drop_data():
-# 	try:
-# 		with transaction.atomic():
-# 			for model in getModelLs():
-# 				oCls = apps.get_model("books", model)
-# 				oCls.objects.all().delete()
-# 		click.echo("Data successfully dropped!")
-# 	except DatabaseError as e:
-# 		click.echo("Something went wrong!")
+	if so.newSale(item_count=1, created_at=datetime.datetime.now()):
+		click.echo("Seeder executed successfully.")
+	else:
+		click.secho("Failed to execute!", fg="red")
+
+@main.command("purchase:order")
+@freeze_time(today.strftime("%Y-%m-%d %H:%M:%S"))
+def purchase_order():
+	currPeriod = periodCtr.getCurrent()
+	if currPeriod is None:
+		click.secho("Period must be set first!", fg="red")
+		exit()
+
+	if po.newPurchase(cat_count=1, created_at=datetime.datetime.now()):
+		click.echo("Seeder executed successfully.")
+	else:
+		click.secho("Failed to execute!", fg="red")
+
+@main.command("test:freeze")
+@freeze_time(moment.date("2 years ago").format("YYYY-MM-DD"))
+def test_freeze():
+	print(datetime.datetime.now().strftime("%Y-%m-%d"))
 
 if __name__ == '__main__':	
 	main()
