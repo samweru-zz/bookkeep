@@ -55,8 +55,8 @@ This concept works by interfacing sales and purchase transaction of inventory an
 to bookkeeping functionality. It is implemented by scheduling transactions before submitting  
 them to accounting. Transactions are shceduled pending until the user is satisfied to push 
 `sch:push` them to accounting. Prior to this push, one must create a schedule `sch:new` in 
-which one may add items they hope to purchase `lpo:add` or items that are being sold 
-`sale:add` sales.
+which one may add items they hope to purchase via `lpo:add` or items that are being sold 
+`sale:add` commands.
 
 Once preferred scheduled transaction is pushed, the transaction can be viewed via `trx:last`
 command. The details of bookkeeping can be viewed via the `entry:last` command. To record payments
@@ -80,7 +80,9 @@ Commands:
   entry:rev     Reverse a transaction entry
   lpo:add       Add a number of units of a categorized item to a local...
   lpo:pay       Make payment for purchase order
+  order:filter  Filter ordered items either by trx_no (transaction number)...
   order:last    View X number of last order items
+  order:rev     Revert order only by schedule
   period:last   Last period should be the active period otherwise someone...
   sale:add      Add to sales order.
   sale:disc     Apply sales discount
@@ -90,7 +92,8 @@ Commands:
   sch:push      Push schedule into transaction
   stock:filter  Filter stock items
   stock:last    View X number of stock items
-  trx:last      View X number of last transactions                                                                                          
+  trx:last      View X number of last transactions
+                                                                                          
 ```
 
 ## Contribution

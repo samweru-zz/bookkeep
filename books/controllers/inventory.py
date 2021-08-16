@@ -1,4 +1,4 @@
-from books.models import Stock, Catalogue
+from books.models import Stock, Catalogue, Order
 from books.controllers import accountant as acc
 
 from django.db import DatabaseError, transaction
@@ -8,9 +8,32 @@ import datetime
 
 logger = logging.getLogger(__name__)
 
+"""
+Find next pending stock batch
+"""
 def next(cat: Catalogue):
 	return Stock.objects.filter(cat__id=cat.id, status="Pending").order_by("-id").last()
 
+"""
+Reverse an order
+"""
+def revert(order:Order):
+	try:
+		with transaction.atomic():
+			stock = order.item
+			stock.unit_bal = stock.unit_bal + order.units
+			stock.status = "Active"
+			order.status = "Reverted"
+			stock.save()
+			order.save()
+
+			return True
+	except DatabaseError as e:
+		logger.error(e)
+
+"""
+Deduct ordered items from stock batch
+"""
 def subtract(cat: Catalogue, units: int):
 	try:
 		with transaction.atomic():
@@ -18,6 +41,9 @@ def subtract(cat: Catalogue, units: int):
 				stock = Stock.objects.get(cat__id=cat.id, status="Active")
 			else:
 				stock = next(cat=cat)
+				if stock is None:
+					raise Exception("Out of stock!")
+
 				stock.status = "Active"
 
 			if(units > stock.unit_bal):

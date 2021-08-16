@@ -90,11 +90,12 @@ class Order:
 		if(items.count() > 0):
 			salesOrder = Order(trxNo)
 			for order in items:
-				salesOrder.catList.append({
+				if order.status != "Reverted":
+					salesOrder.catList.append({
 
-					"cat":order.item.cat, 
-					"units":order.units,
-					"oid":order.id
-				})
+						"cat":order.item.cat, 
+						"units":order.units,
+						"oid":order.id
+					})
 
 		return salesOrder

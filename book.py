@@ -6,9 +6,11 @@ import warnings
 import tabulate
 import datetime
 import re
+import logging
 
 from django.core.serializers import serialize
 from django.db import DatabaseError, transaction
+from django.db.models import Q
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, "../")
@@ -21,9 +23,12 @@ from books.controllers import accountant as acc
 from books.controllers import purchase as pur
 from books.controllers import customer as cust
 from books.controllers import sale
+from books.controllers import inventory as inv
 from books.controllers.inventory import Requisition as InvReq
 from books.controllers import period as periodCtr
 from pick import pick
+
+logger = logging.getLogger(__name__)
 
 def get_label(option): return option.get('label')
 
@@ -34,14 +39,20 @@ def main():
 @main.command("sch:new")
 @click.argument('descr')
 @click.argument('amt', required=False, default=0.00)
-def sch_new(descr:str, amt:float):
+@click.option("--ttype", type=click.Choice(['lpo', 'sale'], case_sensitive=False), 
+							required=True)
+def sch_new(descr:str, amt:float, ttype:str):
 	"""
 	Create new schedule
 	"""
-	trxNo = acc.getTrxNo("SCH")
+	if ttype == "lpo":
+		trxNo = acc.getTrxNo("PUR")
+	elif ttype == "sale":
+		trxNo = acc.getTrxNo("INV")
+
 	sch = Schedule(tno=trxNo, amt=amt, descr=descr)
 	sch.save()
-	click.echo("Trx No.: %s | Id: %d | Amt: %d" % (trxNo, sch.id, "Kshs. {:,.2f}".format(sch.amt)))
+	click.echo("Trx No.: %s | Id: %d | Amt: %s" % (trxNo, sch.id, "Kshs. {:,.2f}".format(sch.amt)))
 
 @main.command("sch:last")
 @click.argument('offset', required=False, default=1)
@@ -63,10 +74,8 @@ def sch_last(offset):
 
 @main.command("sch:push")
 @click.argument('id')
-@click.option("--ttype", type=click.Choice(['lpo', 'sale', 'none'], case_sensitive=False), 
-							required=True)
 @click.option("--descr", default="N/A")
-def sch_push(id:int, descr:str, ttype:str):
+def sch_push(id:int, descr:str):
 	"""
 	Push schedule into transaction
 	"""
@@ -77,14 +86,12 @@ def sch_push(id:int, descr:str, ttype:str):
 				sch.status="Final"
 				sch.save()
 
-				trxNo = sch.tno
-				if ttype == "lpo":
-					trxNo = acc.withTrxNo("PUR", sch.tno)
-					req = InvReq.findByTrxNo(trxNo)
+				trxNoPrefix = sch.tno[:3]
+				if trxNoPrefix == "PUR":
+					req = InvReq.findByTrxNo(sch.tno)
 					trx = pur.order(req, descr)
-				elif ttype == "sale":
-					trxNo = acc.withTrxNo("SAL", sch.tno)
-					salesOrder = cust.Order.findByTrxNo(trxNo)
+				elif trxNoPrefix == "INV":
+					salesOrder = cust.Order.findByTrxNo(sch.tno)
 					trx = sale.invoice(salesOrder, descr)
 			click.echo("Schedule pushed successfully.")
 		else:
@@ -180,7 +187,7 @@ def lpo_add(sch_id:int, units:int, unit_cost:float):
 								code=code, 
 								unit_bal=units,
 								unit_total=units, 
-								unit_cost="Kshs. {:,.2f}".format(unit_cost), 
+								unit_cost=unit_cost, 
 								status="Order:Pending")
 					order.save()
 
@@ -190,6 +197,7 @@ def lpo_add(sch_id:int, units:int, unit_cost:float):
 			else:
 				click.secho("Schedule status must be [Pending]!", fg="red")
 	except Exception as e:
+		# logger.error(e)
 		click.echo("Purcase Order: Couldn't add item!")
 	except DatabaseError as e:
 		click.echo("Something went wrong!")
@@ -367,14 +375,12 @@ def sale_add():
 			sch=Schedule.objects.get(id=sch_id)
 			cat=Catalogue.objects.get(id=cat_id)
 
-			trxNo = acc.withTrxNo("SAL", sch.tno)
-
-			custOrder = cust.Order.findByTrxNo(trxNo)
+			custOrder = cust.Order.findByTrxNo(sch.tno)
 			isOrderEmpty = custOrder.isEmpty()
 			custOrder.addItem(cat=cat, units=int(units))
 
 			if isOrderEmpty:	
-				custOrder.saveWithTrxNo(trxNo)
+				custOrder.saveWithTrxNo(sch.tno)
 			else:
 				custOrder.save()
 
@@ -383,7 +389,7 @@ def sale_add():
 
 			click.echo("Sales Order: Item added successfully.")
 	except Exception as e:
-		click.echo(e)
+		logger.error(e)
 	except DatabaseError as e:
 		click.echo("Something went wrong!")
 
@@ -419,6 +425,51 @@ def order_last(offset):
 	rs = periodCtr.withQs(Order.objects.all().order_by("-id"))
 	data = []
 	for row in rs[:offset]:
+		data.append({
+
+			"id":row.id,
+			"trx_no":row.tno,
+			"catalogue":row.item.cat.name,
+			"units":row.units,
+			"status":row.status,
+			"created_at":row.created_at.strftime("%A %d. %B %Y")
+		})
+
+	click.echo(tabulate.tabulate(data, headers='keys'))
+
+@main.command("order:rev")
+@click.argument('id')
+def order_revert(id:int):
+	"""
+	Revert order only by schedule
+	"""
+	try:
+		with transaction.atomic():
+			order = Order.objects.get(id=id)
+			schedule = Schedule.objects.get(tno=order.tno)
+			if order != None and schedule != None:
+				inv.revert(order)
+				tt_rev_price = order.units * order.item.cat.price
+				schedule.amt = schedule.amt - tt_rev_price
+				schedule.save()
+
+			click.echo("Order successfully reverted.")
+	except DatabaseError as e:
+		logger.error(e)
+	except Exception as e:
+		# logger.error(e)
+		click.echo("Something went wrong!")
+
+@main.command("order:filter")
+@click.argument('filtr')
+def order_filter(filtr:str):
+	"""
+	Filter ordered items either by trx_no (transaction number) or catalogue item name
+	"""
+	orders = Order.objects.filter(Q(tno__icontains=filtr)|Q(item__cat__name__icontains=filtr))
+	rs = periodCtr.withQs(orders.order_by("-id"))
+	data = []
+	for row in rs:
 		data.append({
 
 			"id":row.id,
