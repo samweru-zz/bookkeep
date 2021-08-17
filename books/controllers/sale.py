@@ -62,26 +62,23 @@ def receipt(trxNo:str, amt:float=None, created_at:datetime.datetime=None):
 		return False
 
 #sales return
-def returns(trxNo:str, amt:float=None, created_at:datetime.datetime=None):
-	trx = Trx.objects.get(tno=trxNo)
-
-	if amt is None:
-		amt = trx.qamt
-
-	so = SalesOrder.findByTrxNo(trxNo)
-	ratio = so.getTotalCost()/so.getTotalPrice()
-	cogs = ratio * amt
+def returns(so:SalesOrder, created_at:datetime.datetime=None):
+	trxNo = so.trxNo
+	oTrxNo = acc.withTrxNo("INV", trxNo)
+	trx = Trx.objects.filter(tno=oTrxNo).first()
 
 	try:
 		with transaction.atomic():
-			trx.bal = trx.bal + amt
+			total_price = so.getTotalPrice()
+			total_cost = so.getTotalCost()
+
+			trx.bal = trx.bal - total_price
 			trx.save()
 
-			acc.newEntry(trxNo=trxNo, token="apply.sale-return", amt=amt, created_at=created_at).save()
-			acc.newEntry(trxNo=trxNo, token="reverse.cogs", amt=cogs, created_at=created_at).save()
+			acc.newEntry(trxNo=trxNo, token="apply.sale-return", amt=total_price, created_at=created_at).save()
+			acc.newEntry(trxNo=trxNo, token="reverse.cogs", amt=total_cost, created_at=created_at).save()
 
-			return True
-		return False
+			return trx
 	except DatabaseError as e:
 		logger.error(e)
 

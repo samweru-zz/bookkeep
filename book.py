@@ -39,20 +39,30 @@ def main():
 @main.command("sch:new")
 @click.argument('descr')
 @click.argument('amt', required=False, default=0.00)
-@click.option("--ttype", type=click.Choice(['lpo', 'sale'], case_sensitive=False), 
+@click.option("--ttype", type=click.Choice(['lpo', 'sale', 'saleret'], case_sensitive=False), 
 							required=True)
 def sch_new(descr:str, amt:float, ttype:str):
 	"""
 	Create new schedule
 	"""
+	trxNo = None
 	if ttype == "lpo":
 		trxNo = acc.getTrxNo("PUR")
 	elif ttype == "sale":
 		trxNo = acc.getTrxNo("INV")
+	elif ttype == "saleret":
+		oTrxNo = click.prompt('Trx No:')
+		trx = Trx.objects.filter(tno=oTrxNo).first()
+		if trx is not None:
+			trxNo = acc.withTrxNo("SRT", oTrxNo)
 
-	sch = Schedule(tno=trxNo, amt=amt, descr=descr)
-	sch.save()
-	click.echo("Trx No.: %s | Id: %d | Amt: %s" % (trxNo, sch.id, "Kshs. {:,.2f}".format(sch.amt)))
+	if trxNo is not None:
+		sch = Schedule(tno=trxNo, amt=amt, descr=descr)
+		sch.save()
+		click.echo("Trx No.: %s | Id: %d | Amt: %s" % 
+			(trxNo, sch.id, "Kshs. {:,.2f}".format(sch.amt)))
+	else:
+		click.secho("Couldn't generate a valid TrxNo!", fg="red")
 
 @main.command("sch:last")
 @click.argument('offset', required=False, default=1)
@@ -93,6 +103,9 @@ def sch_push(id:int, descr:str):
 				elif trxNoPrefix == "INV":
 					salesOrder = cust.Order.findByTrxNo(sch.tno)
 					trx = sale.invoice(salesOrder, descr)
+				elif trxNoPrefix == "SRT":
+					salesOrder = cust.Order.findByTrxNo(sch.tno)
+					trx = sale.returns(salesOrder)
 			click.echo("Schedule pushed successfully.")
 		else:
 			click.echo("Schedule already pushed!")
@@ -353,6 +366,77 @@ def sale_receipt(trx_id:int, amt:int=None):
 	else:
 		click.echo("Transaction already finalized!")
 
+@main.command("trx:id")
+@click.argument('tid')
+def trx_id(tid:str):
+	"""
+	Find transaction by ID or TRXNO. Note: TRXNO is still used in the schedule.
+	"""
+	trx = None
+	if tid.isnumeric():
+		trx = Trx.objects.filter(id=tid).first()
+	elif tid.isalnum():
+		trx = Trx.objects.filter(tno__icontains=tid).first()
+
+	if trx is None:
+		click.secho("Couldn't find transaction!", fg="red")
+	else:
+		click.echo("\nId: %d | Trx No: %s | Amt: %s | Bal: %s | Status: %s \n" % 
+					(trx.id, trx.tno, 
+						"Kshs. {:,.2f}".format(trx.qamt),
+						"Kshs. {:,.2f}".format(trx.bal), trx.status))
+
+		rs = Ledger.objects.filter(tno__icontains=trx.tno[3:])
+
+		data = []
+		for row in rs:
+			data.append({
+
+				"id":row.id,
+				"trx_no":row.tno,
+				"trx_type":"dr:%s|cr:%s" % (row.dr.name, row.cr.name),
+				"amt":"Kshs. {:,.2f}".format(row.amt),
+				"created_at":row.created_at.strftime("%A %d. %B %Y")
+			})
+
+		click.echo(tabulate.tabulate(data, headers='keys'))
+
+
+@main.command("sale:ret")
+@click.argument('ord_id')
+@click.argument('units')
+@click.option("--descr", default="N/A")
+def sale_return(ord_id:int, units:int, descr:str):
+	"""
+	Sales return units per order
+	"""
+	try:
+		with transaction.atomic():
+			order = Order.objects.get(id=ord_id)
+			trx = Trx.objects.filter(tno=order.tno).first()
+
+			if int(units) <= int(order.units): 
+				tt_cost = int(units) * order.item.unit_cost
+				tt_price = int(units) * order.item.cat.price
+
+			trxNo = acc.withTrxNo("SRT", order.tno)
+			sch = Schedule.objects.filter(tno=trxNo).first()
+			if sch is None:
+				sch = Schedule(tno=trxNo, descr=descr)
+				sch.amt = 0 
+
+			# trx.bal = trx.bal + tt_price
+			sch.amt = sch.amt + tt_cost
+
+			Order(tno=trxNo, item=order.item, units=units, status="Returned").save()
+
+			# trx.save()
+			sch.save()
+
+			click.echo("Sales order reversed successfully.")
+	except DatabaseError as e:
+		logger.error(e)
+
 @main.command("sale:add")
 def sale_add():
 	"""
@@ -448,12 +532,17 @@ def order_revert(id:int):
 			order = Order.objects.get(id=id)
 			schedule = Schedule.objects.get(tno=order.tno)
 			if order != None and schedule != None:
-				inv.revert(order)
-				tt_rev_price = order.units * order.item.cat.price
-				schedule.amt = schedule.amt - tt_rev_price
-				schedule.save()
+				if schedule.status == "Pending":
+					inv.revert(order)
+					tt_rev_price = order.units * order.item.cat.price
+					schedule.amt = schedule.amt - tt_rev_price
+					schedule.save()
 
-			click.echo("Order successfully reverted.")
+					click.echo("Order successfully reverted.")
+				else:
+					click.secho("Schedule is closed!", fg="red")
+			else:
+				click.secho("Order may not exist!", fg="red")
 	except DatabaseError as e:
 		logger.error(e)
 	except Exception as e:
