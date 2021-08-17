@@ -52,5 +52,23 @@
 			"dr":10,
 			"cr":9
 		}
+	},
+	{
+		"model":"books.trxtype",
+		"pk":8,
+		"fields":{
+			"token":"apply.sale-return",
+			"dr":11,
+			"cr":4
+		}
+	},
+	{
+		"model":"books.trxtype",
+		"pk":9,
+		"fields":{
+			"token":"reverse.cogs",
+			"dr":9,
+			"cr":10
+		}
 	}
 ]

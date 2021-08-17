@@ -20,7 +20,6 @@ class Trx(models.Model):
 	bal = models.FloatField(default=0) #balance
 	status = models.CharField(max_length=200, default="Pending")
 	created_at = models.DateTimeField(default=datetime.now, editable=True)
-	# created_at = models.DateTimeField(auto_now=True)
 
 class Schedule(models.Model):
 	tno = models.CharField(max_length=200)

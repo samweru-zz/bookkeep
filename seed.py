@@ -50,23 +50,23 @@ def getModelLs():
 def getFileBaseLs():
 	return [
 
-		"catalogue",
-		"coa",
-		"trx_cfg",
-		"trx_type",
+		"base.catalogue",
+		"base.coa",
+		"base.trx_cfg",
+		"base.trx_type",
 	]
 
 def getFileLs():
 	return [
 
-		"catalogue",
-		"coa",
-		"trx_cfg",
-		"trx_type",
-		"schedule",
-		"ledger",
-		"stocks",
-		"trx"
+		"base.catalogue",
+		"base.coa",
+		"base.trx_cfg",
+		"base.trx_type",
+		"alpha.schedule",
+		"alpha.ledger",
+		"alpha.stocks",
+		"alpha.trx"
 	]
 
 def seedWithJson(items:list, now:datetime.datetime):
@@ -151,9 +151,10 @@ def db_base():
 	try:
 		currPeriod = periodCtr.getCurrent()
 		if currPeriod is not None:
-			for file in getFileBaseLs():
+			for json_file in getFileBaseLs():
+				print(json_file)
 				rand_date = periodCtr.getRandDate(Period.objects.last())
-				seedWithJson(json.load(open("fixtures/%s.json" % file)), rand_date)
+				seedWithJson(json.load(open("fixtures/%s.json" % json_file)), rand_date)
 
 			click.echo("Database foundation seeded successfully!")
 		else:

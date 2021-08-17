@@ -110,5 +110,16 @@
 			"token":"expense",
 			"rules":"type:liability|term:short"
 		}
+	},
+	{
+		"model":"books.coa",
+		"pk":11,
+		"fields":{
+			"code":4100,
+			"name":"Sales Return",
+			"alias":"SALRET",
+			"token":"contra-revenue",
+			"rules":"type:income"
+		}
 	}
 ]

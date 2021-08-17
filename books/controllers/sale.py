@@ -61,6 +61,30 @@ def receipt(trxNo:str, amt:float=None, created_at:datetime.datetime=None):
 
 		return False
 
+#sales return
+def returns(trxNo:str, amt:float=None, created_at:datetime.datetime=None):
+	trx = Trx.objects.get(tno=trxNo)
+
+	if amt is None:
+		amt = trx.qamt
+
+	so = SalesOrder.findByTrxNo(trxNo)
+	ratio = so.getTotalCost()/so.getTotalPrice()
+	cogs = ratio * amt
+
+	try:
+		with transaction.atomic():
+			trx.bal = trx.bal + amt
+			trx.save()
+
+			acc.newEntry(trxNo=trxNo, token="apply.sale-return", amt=amt, created_at=created_at).save()
+			acc.newEntry(trxNo=trxNo, token="reverse.cogs", amt=cogs, created_at=created_at).save()
+
+			return True
+		return False
+	except DatabaseError as e:
+		logger.error(e)
+
 def getSaleTax(amt:float):
 	cfgSaleTax = TrxCfg.objects.get(token="sale.tax")
 	rules = Ruler(cfgSaleTax.rules)
