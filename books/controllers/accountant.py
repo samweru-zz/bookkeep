@@ -35,7 +35,6 @@ def newTrx(trxNo:str, amt:float, descr:str, created_at:datetime.datetime=None):
 		trx.created_at = created_at
 
 	return trx
-	 
 
 def newEntry(trxNo:str, token:str, amt:float, created_at:datetime.datetime=None):
 	trxType = TrxType.objects.get(token=token)

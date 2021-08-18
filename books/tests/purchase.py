@@ -1,37 +1,49 @@
 from books.models import *
 from freezegun import freeze_time
 from django.test import TestCase
+from django.db import DatabaseError, transaction
 
 from books.controllers.inventory import  Requisition as InvReq
 from books.controllers import accountant as acc
 from books.controllers import purchase as pur
+from books.seeders import purchase_order as po
 
 import moment
 import json
 import unittest
+import datetime
+import logging
+import random
+
+logger = logging.getLogger(__name__)
 
 class PurchaseTestCase(TestCase):
-# class PurchaseTestCase(unittest.TestCase):
 	def setUp(self):
-		self.trxNo = acc.getTrxNo("INV")
+		self.trxNo = acc.getTrxNo("PUR")
 
 	def test_po(self):
-		c1 = Catalogue(name="RAM Memory", price=2500)
-		c2 = Catalogue(name="Keyboard", price=1000)
-		c1.save()
-		c2.save()
+		try:
+			with transaction.atomic():
+				total_costs = 0
 
-		req = InvReq(None)
-		req.add(cat=c1, units=25, unit_cost=350)
-		req.add(cat=c2, units=15, unit_cost=125)
+				req = InvReq(None)
+				for x in range(2):
+					units = random.randint(15,35)
+					unit_cost = random.randint(100,500)
+					cat = po.getCatalogue(created_at=datetime.datetime.now())
+					req.add(cat=cat, units=units, unit_cost=unit_cost)
+					total_costs += units * unit_cost
 
-		self.assertTrue(req.saveWithTrxNo(self.trxNo))
-		self.assertEqual(10625, req.getTotalCost())
+				self.assertTrue(req.saveWithTrxNo(self.trxNo))
+				self.assertEqual(total_costs, req.getTotalCost())
 
-		# req = InvReq.findByTrxNo(self.trxNo)
-		trx = pur.order(req=req, descr="Computer Accessories")
-		trx.save()
-		self.assertTrue(pur.pay(trxNo=self.trxNo, amt=10625))
+				pur.order(req=req, descr="Computer Accessories").save()
+
+				self.assertTrue(pur.pay(trxNo=self.trxNo, amt=total_costs))
+		except DatabaseError as e:
+			logger.error(e)
+		except Exception as e:
+			logger.error(e)
 
 	def tearDown(self):
 		pass

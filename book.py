@@ -532,7 +532,7 @@ def order_revert(id:int):
 			order = Order.objects.get(id=id)
 			schedule = Schedule.objects.get(tno=order.tno)
 			if order != None and schedule != None:
-				if schedule.status == "Pending":
+				if schedule.status == "Pending" and order.status == "Pending":
 					inv.revert(order)
 					tt_rev_price = order.units * order.item.cat.price
 					schedule.amt = schedule.amt - tt_rev_price
@@ -540,7 +540,7 @@ def order_revert(id:int):
 
 					click.echo("Order successfully reverted.")
 				else:
-					click.secho("Schedule is closed!", fg="red")
+					click.secho("Schedule is closed or order is finalized!", fg="red")
 			else:
 				click.secho("Order may not exist!", fg="red")
 	except DatabaseError as e:

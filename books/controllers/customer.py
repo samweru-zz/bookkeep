@@ -83,6 +83,20 @@ class Order:
 		except DatabaseError as e:
 			return False
 
+	def updateWithStatus(self, status):
+		try:
+			with transaction.atomic():
+				for item in self.catList:
+					if "oid" in item.keys():
+						order = ItemOrder.objects.get(id=item.get("oid"))
+						if order.status != "Final":
+							order.status = status
+							order.save()
+
+				return True
+		except DatabaseError as e:
+			return False
+
 	def findByTrxNo(trxNo:str):
 		items = ItemOrder.objects.filter(tno=trxNo)
 

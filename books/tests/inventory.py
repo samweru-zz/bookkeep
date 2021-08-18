@@ -2,47 +2,54 @@ from books.models import *
 from freezegun import freeze_time
 from django.test import TransactionTestCase
 from django.test import TestCase
+from django.db import DatabaseError, transaction
 
 from books.controllers.customer import  Order as SaleOrder
 from books.controllers import accountant as acc
 from books.controllers import sale
+from books.seeders import sales_order as so
 
 import moment
 import json
 import unittest
+import random
+import datetime
+import logging
 
-# class InventoryTestCase(unittest.TestCase):
+logger = logging.getLogger(__name__)
+
 class InventoryTestCase(TestCase):
-	# databases = {'default'}
 	def setUp(self):
 		self.trxNo = acc.getTrxNo("INV")
 
 	def test_so(self):
-		c1 = Catalogue(name="Paper Punch", price=2500)
-		c2 = Catalogue(name="Staplers", price=1000)
-		c1.save()
-		c2.save()
+		total_price = 0
+		total_cost = 0
 
-		s1 = Stock(tno=self.trxNo, code=acc.getCode(), cat=c1, 
-					unit_bal=10, unit_total=10, unit_cost=100)
-		s2 = Stock(tno=self.trxNo, code=acc.getCode(), cat=c2,
-					unit_bal=20, unit_total=20, unit_cost=200)
-		s1.save()
-		s2.save()
+		try:
+			with transaction.atomic():
+				salesOrder = SaleOrder()
+				for x in range(2):
+					units = random.randint(1,10)
+					cat = so.getCatalogue(created_at=datetime.datetime.now())
+					stock = so.getStock(cat=cat, trxNo=self.trxNo, created_at=datetime.datetime.now())
+					salesOrder.addItem(cat=cat, units=units)
+					total_cost += units * stock.unit_cost
+					total_price += units * stock.cat.price
 
-		so = SaleOrder()
-		so.addItem(cat=c1, units=2)
-		so.addItem(cat=c2, units=3)
+				self.assertEqual(total_price, salesOrder.getTotalPrice())
 
-		self.assertEqual(8000, so.getTotalPrice())
+				self.assertTrue(salesOrder.saveWithTrxNo(self.trxNo))
 
-		self.assertTrue(so.saveWithTrxNo(self.trxNo))
+				self.assertEqual(total_cost, salesOrder.getTotalCost())
 
-		self.assertEqual(800, so.getTotalCost())
+				trx = sale.invoice(order=salesOrder, descr="Stationery")
 
-		trx = sale.invoice(order=so, descr="Stationery")
-
-		self.assertTrue(sale.receipt(trxNo=self.trxNo, amt=so.getTotalPrice()))
+				self.assertTrue(sale.receipt(trxNo=self.trxNo, amt=salesOrder.getTotalPrice()))
+		except DatabaseError as e:
+			logger.error(e)
+		except Exception as e:
+			logger.error(e)
 
 	def tearDown(self):
 		pass

@@ -11,13 +11,13 @@ import datetime
 
 logger = logging.getLogger(__name__)
 
-def getCatalogue():
+def getCatalogue(created_at:datetime.datetime=None):
 	items = ["Case", "Motherboard", "CPU [Processor]",
 		"GPU [Graphics Card]", "RAM [Memory]", "Storage Device (SSD, NVME SSD, HDD)",
 		"Cooling (CPU, Chassis)", "PSU [Power Supply Unit]", "Display device, Monitor",
 		"Operating System [OS]","Input Devices, Mouse, Keyboard"]
 
-	cat = Catalogue(name=random.choice(items), price=random.randint(1500, 3500))
+	cat = Catalogue(name=random.choice(items), price=random.randint(1500, 3500), created_at=created_at)
 	cat.save()
 
 	return cat
@@ -25,7 +25,7 @@ def getCatalogue():
 def getInvReq(cat_count:int, created_at:datetime.datetime=None):
 	req = InvReq(None)
 	for i in range(cat_count):
-		cat = getCatalogue()
+		cat = getCatalogue(created_at=created_at)
 		req.add(cat=cat, units=random.randint(25,55), unit_cost=random.randint(750, 1450))
 
 	req.saveWithTrxNo(trxNo=acc.getTrxNo("PUR"), created_at=created_at)

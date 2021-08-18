@@ -40,7 +40,6 @@ def receipt(trxNo:str, amt:float=None, created_at:datetime.datetime=None):
 
 	order = SalesOrder.findByTrxNo(trxNo)
 	cogs = order.getTotalCost()
-
 	rtrxNo = acc.withTrxNo("REC", trxNo)
 
 	try:
@@ -49,6 +48,8 @@ def receipt(trxNo:str, amt:float=None, created_at:datetime.datetime=None):
 				trx.bal = bal
 				trx.status = status
 				trx.save()
+
+				order.updateWithStatus("Final")
 
 				acc.newEntry(trxNo=rtrxNo, token="apply.sale", amt=amt, created_at=created_at).save()
 				acc.newEntry(trxNo=rtrxNo, token="apply.sale.tax", amt=tax, created_at=created_at).save()
