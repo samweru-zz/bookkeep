@@ -1,4 +1,4 @@
-Django Bookkeep (Inventory)
+Django Bookkeep (Inventory & Merchandising)
 ===
 
 This is a bookkeeping (proof-of-concept) project for inventory and retail systems that demonstarted 
@@ -32,6 +32,7 @@ Options:
 Commands:
   db:all          Seed database with sample transactions
   db:base         Seed database without sample transactions
+  period:actvt    Activate a different period
   period:create   Define period start and end date.
   purchase:order  Seed database with sample purchase order transactions
   sales:order     Seed database with sample sales order transactions
@@ -62,7 +63,7 @@ which one may add items they hope to purchase via `lpo:add` or items that are be
 `sale:add` commands.
 
 Once preferred scheduled transaction is pushed, the transaction can be viewed via `trx:last`
-command. The details of bookkeeping can be viewed via the `entry:last` command. To record payments
+command and details of bookkeeping can be viewed via the `entry:last` command. To record payments
 for purchases command `lpo:pay` and to record sales receipts command `sale:rec` are used. In order 
 to fulfill a sales return one has to use `sale:ret` command to undo order by number of units then
 push the resulting schedule `sch:push` into transactions. Transaction details command are viewable
@@ -72,8 +73,7 @@ via `trx:id` which is conviniently applicable.
 
 It is **important** to note that a period must be defined first `period:create` via the `seed.py`
 utility. Defining a new period will deactivate any perious periods and those transaction will
-no longer be visible. It is **important** to finalize or transactions, orders and schedules before
-closing a period.
+no longer be visible. It is **important** to also finalize all transactions, orders and schedules before closing a period.
 
 ```
 Usage: book.py [OPTIONS] COMMAND [ARGS]...
