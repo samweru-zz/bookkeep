@@ -60,7 +60,10 @@ which one may add items they hope to purchase via `lpo:add` or items that are be
 
 Once preferred scheduled transaction is pushed, the transaction can be viewed via `trx:last`
 command. The details of bookkeeping can be viewed via the `entry:last` command. To record payments
-for purchases command `lpo:pay` and to record sales receipts command `sale:rec` are used.
+for purchases command `lpo:pay` and to record sales receipts command `sale:rec` are used. In order 
+to fulfill a sales return one has to use `sale:ret` command to undo order by number of units then
+push the resulting schedule `sch:push` into transactions. Transaction details command are viewable
+via `trx:id` which is conviniently applicable.
 
 It is important to note that a period must be defined first `period:create` via the `seed.py`
 utility. Defining a new period will deactivate any perious periods and those transaction will
@@ -87,13 +90,14 @@ Commands:
   sale:add      Add to sales order.
   sale:disc     Apply sales discount
   sale:rec      Receive payment for sales order
+  sale:ret      Sales return units per order
   sch:last      View X number of last schedules
   sch:new       Create new schedule
   sch:push      Push schedule into transaction
   stock:filter  Filter stock items
   stock:last    View X number of stock items
+  trx:id        Find transaction by ID or TRXNO.
   trx:last      View X number of last transactions
-                                                                                          
 ```
 
 ## Contribution

@@ -425,12 +425,10 @@ def sale_return(ord_id:int, units:int, descr:str):
 				sch = Schedule(tno=trxNo, descr=descr)
 				sch.amt = 0 
 
-			# trx.bal = trx.bal + tt_price
 			sch.amt = sch.amt + tt_cost
 
 			Order(tno=trxNo, item=order.item, units=units, status="Returned").save()
-
-			# trx.save()
+			
 			sch.save()
 
 			click.echo("Sales order reversed successfully.")
