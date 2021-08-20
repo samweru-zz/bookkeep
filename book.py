@@ -32,6 +32,11 @@ logger = logging.getLogger(__name__)
 
 def get_label(option): return option.get('label')
 
+period = periodCtr.getCurrent()
+if period is None:
+	click.secho("Please define a period! Use seed.py utility.", fg="red")
+	exit()
+
 @click.group()
 def main():
     pass

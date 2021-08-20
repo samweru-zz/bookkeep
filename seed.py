@@ -102,6 +102,30 @@ def seedAll():
 def main():
 	pass
 
+@main.command("period:actvt")
+@click.argument('id')
+def period_activate(id:int):
+	"""
+	Activate a different period
+	"""
+	try:
+		with transaction.atomic():
+			period = Period.objects.filter(id=id).first()
+			if period is not None:
+				for p in Period.objects.all():
+					if p.status == "Active":
+						p.status = "Pending"
+					else:
+						p.status = "Closed"
+					p.save()
+
+				period.status = "Active"
+				period.save()
+
+			click.echo("Period successfully activated.")
+	except DatabaseError as e:
+		logger.error(e)
+
 @main.command("period:create")
 @click.option('--start', '-s', help="yyyy-mm-dd")
 @click.option('--end', '-e', help="yyyy-mm-dd")

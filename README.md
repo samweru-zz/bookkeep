@@ -52,9 +52,12 @@ python book.py
 ## Explanation
 
 This concept works by interfacing sales and purchase transaction of inventory and retail 
-to bookkeeping functionality. It is implemented by scheduling transactions before submitting  
-them to accounting. Transactions are shceduled pending until the user is satisfied to push 
-`sch:push` them to accounting. Prior to this push, one must create a schedule `sch:new` in 
+to bookkeeping functionality. This accounting methodology utilizes perpetual approach 
+as opposed to periodic approach of inventory.
+
+It is implemented by scheduling transactions before submitting them to accounting. 
+Transactions are scheduled pending until the user is satisfied to push `sch:push` 
+them to accounting. Prior to this push, one must create a schedule `sch:new` in 
 which one may add items they hope to purchase via `lpo:add` or items that are being sold 
 `sale:add` commands.
 
@@ -65,9 +68,12 @@ to fulfill a sales return one has to use `sale:ret` command to undo order by num
 push the resulting schedule `sch:push` into transactions. Transaction details command are viewable
 via `trx:id` which is conviniently applicable.
 
-It is important to note that a period must be defined first `period:create` via the `seed.py`
+### Note
+
+It is **important** to note that a period must be defined first `period:create` via the `seed.py`
 utility. Defining a new period will deactivate any perious periods and those transaction will
-no longer be visible.
+no longer be visible. It is **important** to finalize or transactions, orders and schedules before
+closing a period.
 
 ```
 Usage: book.py [OPTIONS] COMMAND [ARGS]...
